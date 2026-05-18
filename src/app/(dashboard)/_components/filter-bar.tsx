@@ -14,13 +14,13 @@ export function FilterBar<T extends string>({
   return (
     <div
       aria-label="Filtro de período"
-      className="grid grid-cols-3 rounded-md border border-[var(--line)] bg-white p-1 text-sm font-semibold"
+      className="grid min-w-0 grid-cols-3 rounded-md border border-[var(--line)] bg-white p-1 text-sm font-semibold"
       role="group"
     >
       {options.map((option) => (
         <button
           className={clsx(
-            "h-9 rounded px-3 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]",
+            "h-9 min-w-0 rounded px-3 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]",
             option === selected
               ? "bg-[var(--brand)] text-white"
               : "text-stone-600 hover:bg-[var(--surface-muted)]",

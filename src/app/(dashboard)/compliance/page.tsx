@@ -13,6 +13,8 @@ export default function CompliancePage() {
         <div className="space-y-4">
           <ComplianceItem text="Dados clínicos ficam apenas no dashboard web." />
           <ComplianceItem text="IA atua somente em fluxos administrativos." />
+          <ComplianceItem text="Mensagens automáticas usam templates aprovados." />
+          <ComplianceItem text="NFS-e, recibos e cobranças ficam vinculados ao atendimento." />
           <ComplianceItem text="Prontuários são autorais e sem redação por IA." />
           <ComplianceItem text="Arquivamento preserva registros por 5 anos." />
         </div>

@@ -7,6 +7,18 @@ const paymentVariant = {
   PENDENTE: "warning" as const,
 };
 
+const consentLabel = {
+  complete: "Consentimentos ok",
+  pending: "Consentimento pendente",
+  expired: "Consentimento vencido",
+};
+
+const consentVariant = {
+  complete: "success" as const,
+  pending: "warning" as const,
+  expired: "danger" as const,
+};
+
 export function PatientCard({ patient }: { patient: Patient }) {
   const formatDateTime = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
@@ -37,6 +49,15 @@ export function PatientCard({ patient }: { patient: Patient }) {
         </Badge>
       </div>
 
+      {patient.consentStatus ? (
+        <div className="mt-3 flex flex-wrap gap-2">
+          <Badge variant={consentVariant[patient.consentStatus]}>
+            {consentLabel[patient.consentStatus]}
+          </Badge>
+          <Badge variant="neutral">{patient.attachmentCount ?? 0} anexos</Badge>
+        </div>
+      ) : null}
+
       <dl className="mt-4 grid grid-cols-2 gap-3 text-sm">
         <Info label="Modalidade" value={patient.modality} />
         <Info
@@ -58,6 +79,14 @@ export function PatientCard({ patient }: { patient: Patient }) {
         <Info
           label="Pendências"
           value={`${patient.documentsPending ?? 0} documentos`}
+        />
+        <Info
+          label="Continuidade"
+          value={
+            patient.lastClinicalUpdate
+              ? formatDateTime(patient.lastClinicalUpdate)
+              : "Sem evolução"
+          }
         />
       </dl>
     </Link>

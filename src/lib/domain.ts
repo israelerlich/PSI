@@ -11,6 +11,30 @@ export type PaymentStatus = "PENDENTE" | "PAGO";
 
 export type RecordTemplate = "DAP" | "BIRP";
 
+export type ConfirmationStatus =
+  | "pending"
+  | "confirmed"
+  | "reschedule_requested"
+  | "rescheduled"
+  | "manual_review";
+
+export type AttendanceStatus = "expected" | "present" | "missed" | "excused";
+
+export type InvoiceStatus =
+  | "not_required"
+  | "ready"
+  | "queued"
+  | "issued"
+  | "failed";
+
+export type ChargeStatus =
+  | "not_sent"
+  | "pix_sent"
+  | "paid"
+  | "overdue";
+
+export type ReceiptStatus = "not_ready" | "ready" | "sent";
+
 export type Patient = {
   id: string;
   name: string;
@@ -26,6 +50,9 @@ export type Patient = {
   alerts?: string[];
   lastContactAt?: string;
   documentsPending?: number;
+  consentStatus?: "complete" | "pending" | "expired";
+  attachmentCount?: number;
+  lastClinicalUpdate?: string;
 };
 
 export type TherapySession = {
@@ -42,6 +69,12 @@ export type TherapySession = {
   serviceType?: string;
   reminderStatus?: "scheduled" | "sent" | "not_configured";
   documentationStatus?: "not_started" | "draft" | "complete";
+  confirmationStatus?: ConfirmationStatus;
+  attendanceStatus?: AttendanceStatus;
+  amountCents?: number;
+  invoiceStatus?: InvoiceStatus;
+  chargeStatus?: ChargeStatus;
+  receiptStatus?: ReceiptStatus;
 };
 
 export type ClinicalRecord = {
@@ -57,6 +90,9 @@ export type ClinicalRecord = {
     label: string;
     value: string;
   }>;
+  contextSummary?: string;
+  attachments?: string[];
+  consentIds?: string[];
 };
 
 export type Note = {
@@ -87,4 +123,67 @@ export type AvailableSlot = {
   startsAt: string;
   endsAt: string;
   modality: Modality;
+};
+
+export type BillingEntry = {
+  id: string;
+  sessionId: string;
+  patientId: string;
+  patientName: string;
+  serviceDate: string;
+  serviceType: string;
+  amountCents: number;
+  paymentStatus: PaymentStatus;
+  chargeStatus: ChargeStatus;
+  invoiceStatus: InvoiceStatus;
+  receiptStatus: ReceiptStatus;
+  dueDate: string;
+  paidAt?: string;
+};
+
+export type MessageTemplate = {
+  id: string;
+  title: string;
+  category: "confirmacao" | "reagendamento" | "documentos" | "orientacao" | "cobranca";
+  channel: "whatsapp" | "email";
+  approved: boolean;
+  tone: string;
+  body: string;
+};
+
+export type AutomationRule = {
+  id: string;
+  title: string;
+  trigger: string;
+  action: string;
+  status: "active" | "paused";
+  humanTone: string;
+  lastRunAt?: string;
+};
+
+export type ClinicalAttachment = {
+  id: string;
+  patientId: string;
+  title: string;
+  kind: "documento" | "anexo" | "termo" | "encaminhamento";
+  createdAt: string;
+  protected: boolean;
+};
+
+export type Consent = {
+  id: string;
+  patientId: string;
+  title: string;
+  status: "signed" | "pending" | "expired";
+  signedAt?: string;
+  expiresAt?: string;
+};
+
+export type PatientTimelineItem = {
+  id: string;
+  patientId: string;
+  date: string;
+  title: string;
+  detail: string;
+  kind: "sessao" | "evolucao" | "documento" | "financeiro" | "mensagem";
 };

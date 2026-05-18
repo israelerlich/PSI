@@ -56,7 +56,7 @@ export default async function ProntuarioDetalhePage({
           <Badge variant="neutral">{record.template}</Badge>
         </div>
 
-        <div className="grid gap-4 md:grid-cols-2">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           {record.fields.map((field) => (
             <div
               className="rounded-md bg-[var(--surface-muted)] p-4"

@@ -19,6 +19,9 @@ Regras centrais aplicadas nesta base:
 
 - App Next.js 16 com TypeScript, Tailwind CSS e App Router.
 - Dashboard inicial com agenda, pacientes, prontuários, notificações, configurações do agente e compliance.
+- Fluxos de confirmação, reagendamento, lembretes e presença com templates aprovados.
+- Módulo financeiro visual com cobranças, recibos, relatórios e emissão mockada de NFS-e.
+- Registros clínicos com contexto, anexos, consentimentos e linha do tempo por paciente.
 - Dados mockados tipados em `src/lib/mock-data.ts`.
 - Rotas API iniciais:
   - `GET /api/agenda/slots`

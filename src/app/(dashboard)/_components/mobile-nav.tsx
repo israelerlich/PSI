@@ -10,6 +10,7 @@ import {
   CalendarDays,
   FileText,
   HeartHandshake,
+  ReceiptText,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
@@ -20,6 +21,7 @@ const navItems = [
   { label: "Agenda", href: "/agenda", icon: CalendarDays },
   { label: "Pacientes", href: "/pacientes", icon: UsersRound },
   { label: "Prontuários", href: "/prontuarios", icon: FileText },
+  { label: "Financeiro", href: "/financeiro", icon: ReceiptText },
   { label: "WhatsApp IA", href: "/whatsapp", icon: Bot },
   { label: "Compliance", href: "/compliance", icon: ShieldCheck },
 ];
