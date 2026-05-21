@@ -1,26 +1,58 @@
 import type { TherapySession } from "@/lib/domain";
 import { Badge } from "./badge";
 
-const sessionStatusVariant: Record<string, "brand" | "warning" | "danger" | "success" | "neutral"> = {
-  AGENDADA: "brand",
-  REMANEJADA: "warning",
-  CANCELADA: "danger",
-  CONCLUIDA: "success",
-  NAO_COMPARECEU: "neutral",
-};
-
 const paymentVariant = {
   PAGO: "success" as const,
   PENDENTE: "warning" as const,
 };
 
+const confirmationLabel = {
+  pending: "Aguardando",
+  confirmed: "Confirmada",
+  reschedule_requested: "Quer remarcar",
+  rescheduled: "Remarcada",
+  manual_review: "Revisar",
+};
+
+const confirmationVariant = {
+  pending: "warning" as const,
+  confirmed: "success" as const,
+  reschedule_requested: "warning" as const,
+  rescheduled: "brand" as const,
+  manual_review: "danger" as const,
+};
+
+const attendanceLabel = {
+  expected: "Prevista",
+  present: "Presente",
+  missed: "Falta",
+  excused: "Justificada",
+};
+
+const attendanceVariant = {
+  expected: "neutral" as const,
+  present: "success" as const,
+  missed: "danger" as const,
+  excused: "warning" as const,
+};
+
 export function SessionRow({ session }: { session: TherapySession }) {
+  const confirmationStatus = session.confirmationStatus ?? "pending";
+  const attendanceStatus = session.attendanceStatus ?? "expected";
   const documentationLabel =
     session.documentationStatus === "complete"
-      ? "Concluído"
+      ? "concluído"
       : session.documentationStatus === "draft"
-        ? "Rascunho"
-        : "Pendente";
+        ? "rascunho"
+        : "pendente";
+  const financeLabel =
+    session.invoiceStatus === "issued"
+      ? "NFS-e emitida"
+      : session.chargeStatus === "paid"
+        ? "Pago / recibo"
+        : session.chargeStatus === "pix_sent"
+          ? "Pix enviado"
+          : session.paymentStatus;
 
   const formatTime = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
@@ -30,7 +62,7 @@ export function SessionRow({ session }: { session: TherapySession }) {
     }).format(new Date(value));
 
   return (
-    <article className="grid gap-3 px-4 py-4 lg:grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] lg:items-center">
+    <article className="grid grid-cols-1 gap-3 px-4 py-4 lg:grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] lg:items-center">
       <div className="metric-number font-semibold text-stone-950">
         {formatTime(session.startsAt)}
       </div>
@@ -39,26 +71,35 @@ export function SessionRow({ session }: { session: TherapySession }) {
         <p className="mt-1 text-pretty text-sm text-stone-500">
           {session.serviceType} · {session.modality} · {session.location}
         </p>
+        <p className="mt-1 text-xs font-medium text-stone-500">
+          Lembrete: {session.reminderStatus === "sent" ? "enviado" : "agendado"} ·
+          Prontuário: {documentationLabel}
+        </p>
         <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
-          <Badge variant={sessionStatusVariant[session.status]}>
-            {session.status.replace("_", " ")}
+          <Badge variant={confirmationVariant[confirmationStatus]}>
+            {confirmationLabel[confirmationStatus]}
+          </Badge>
+          <Badge variant={attendanceVariant[attendanceStatus]}>
+            {attendanceLabel[attendanceStatus]}
           </Badge>
           <Badge variant={paymentVariant[session.paymentStatus]}>
-            {session.paymentStatus}
+            {financeLabel}
           </Badge>
         </div>
       </div>
       <div className="max-lg:hidden">
-        <Badge variant={sessionStatusVariant[session.status]}>
-          {session.status.replace("_", " ")}
+        <Badge variant={confirmationVariant[confirmationStatus]}>
+          {confirmationLabel[confirmationStatus]}
         </Badge>
       </div>
       <div className="max-lg:hidden">
-        <Badge variant="info">{documentationLabel}</Badge>
+        <Badge variant={attendanceVariant[attendanceStatus]}>
+          {attendanceLabel[attendanceStatus]}
+        </Badge>
       </div>
       <div className="max-lg:hidden">
         <Badge variant={paymentVariant[session.paymentStatus]}>
-          {session.paymentStatus}
+          {financeLabel}
         </Badge>
       </div>
     </article>

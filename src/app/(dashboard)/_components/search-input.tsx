@@ -10,7 +10,7 @@ export function SearchInput({
   onChange?: (value: string) => void;
 }) {
   return (
-    <label className="relative block">
+    <label className="relative block min-w-0">
       <span className="sr-only">{placeholder}</span>
       <Search
         aria-hidden="true"
@@ -18,7 +18,7 @@ export function SearchInput({
         size={18}
       />
       <input
-        className="h-11 w-full rounded-md border border-[var(--line)] bg-white pl-10 pr-8 text-sm outline-none transition-[border-color,box-shadow] duration-150 ease-out placeholder:text-stone-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-teal-100"
+        className="h-11 w-full min-w-0 rounded-md border border-[var(--line)] bg-white pl-10 pr-8 text-sm outline-none transition-[border-color,box-shadow] duration-150 ease-out placeholder:text-stone-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-teal-100"
         autoComplete="off"
         placeholder={placeholder}
         type="search"

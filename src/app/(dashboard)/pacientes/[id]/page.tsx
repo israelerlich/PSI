@@ -1,7 +1,22 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
-import { ArrowLeft, UserRound } from "lucide-react";
-import { patients, sessions, records, notes } from "@/lib/mock-data";
+import {
+  ArrowLeft,
+  FileCheck2,
+  Paperclip,
+  ReceiptText,
+  UserRound,
+} from "lucide-react";
+import {
+  billingEntries,
+  clinicalAttachments,
+  consents,
+  notes,
+  patientTimeline,
+  patients,
+  records,
+  sessions,
+} from "@/lib/mock-data";
 import { Badge } from "../../_components/badge";
 import { SessionRow } from "../../_components/session-row";
 import { RecordCard } from "../../_components/record-card";
@@ -18,6 +33,12 @@ export default async function PacienteDetalhePage({
   const patientSessions = sessions.filter((s) => s.patientId === id);
   const patientRecords = records.filter((r) => r.patientId === id);
   const patientNotes = notes.filter((n) => n.patientId === id);
+  const patientBilling = billingEntries.filter((entry) => entry.patientId === id);
+  const patientConsents = consents.filter((consent) => consent.patientId === id);
+  const patientAttachments = clinicalAttachments.filter(
+    (attachment) => attachment.patientId === id,
+  );
+  const timeline = patientTimeline.filter((item) => item.patientId === id);
 
   const formatDateTime = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
@@ -29,6 +50,12 @@ export default async function PacienteDetalhePage({
       timeZone: "America/Sao_Paulo",
     }).format(new Date(value));
 
+  const formatCurrency = (value: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      currency: "BRL",
+      style: "currency",
+    }).format(value / 100);
+
   return (
     <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
       <Link
@@ -39,7 +66,7 @@ export default async function PacienteDetalhePage({
         Voltar para pacientes
       </Link>
 
-      <div className="grid gap-6 xl:grid-cols-[1fr_2fr]">
+      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_2fr]">
         {/* Dados do paciente */}
         <section className="surface-card rounded-[10px] bg-white p-5">
           <div className="flex items-center gap-3 mb-4">
@@ -77,6 +104,14 @@ export default async function PacienteDetalhePage({
             {patient.generalNotes ? (
               <Info label="Observações" value={patient.generalNotes} />
             ) : null}
+            <Info
+              label="Anexos"
+              value={`${patientAttachments.length} arquivos protegidos`}
+            />
+            <Info
+              label="Consentimentos"
+              value={`${patientConsents.filter((consent) => consent.status === "signed").length}/${patientConsents.length} assinados`}
+            />
           </dl>
 
           {(patient.alerts ?? []).length > 0 ? (
@@ -101,11 +136,11 @@ export default async function PacienteDetalhePage({
               <p className="text-sm text-stone-500">Nenhuma sessão registrada.</p>
             ) : (
               <div className="overflow-hidden rounded-md border border-[var(--line)]">
-                <div className="grid grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
+                <div className="grid grid-cols-[80px_1.2fr_0.9fr_0.85fr_0.95fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
                   <span>Hora</span>
                   <span>Paciente</span>
-                  <span>Status</span>
-                  <span>Prontuário</span>
+                  <span>Confirmação</span>
+                  <span>Presença</span>
                   <span>Financeiro</span>
                 </div>
                 <div className="divide-y divide-[var(--line)]">
@@ -131,6 +166,96 @@ export default async function PacienteDetalhePage({
                 ))}
               </div>
             )}
+          </section>
+
+          <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+            <div className="mb-4 flex items-center gap-2">
+              <FileCheck2
+                aria-hidden="true"
+                className="text-[var(--brand)]"
+                size={18}
+              />
+              <h2 className="text-lg font-semibold text-stone-950">
+                Contexto clínico
+              </h2>
+            </div>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              {timeline.map((item) => (
+                <div
+                  className="rounded-md bg-[var(--surface-muted)] p-3"
+                  key={item.id}
+                >
+                  <p className="text-sm font-semibold text-stone-950">
+                    {item.title}
+                  </p>
+                  <p className="mt-1 text-sm leading-6 text-stone-600">
+                    {item.detail}
+                  </p>
+                  <p className="mt-2 text-xs font-medium text-stone-500">
+                    {formatDateTime(item.date)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </section>
+
+          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+            <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <Paperclip
+                  aria-hidden="true"
+                  className="text-[var(--brand)]"
+                  size={18}
+                />
+                <h2 className="text-lg font-semibold text-stone-950">
+                  Anexos e consentimentos
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {patientAttachments.map((attachment) => (
+                  <Info
+                    key={attachment.id}
+                    label={attachment.kind}
+                    value={attachment.title}
+                  />
+                ))}
+                {patientConsents.map((consent) => (
+                  <Info
+                    key={consent.id}
+                    label={consent.status === "signed" ? "assinado" : "pendente"}
+                    value={consent.title}
+                  />
+                ))}
+              </div>
+            </div>
+
+            <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+              <div className="mb-4 flex items-center gap-2">
+                <ReceiptText
+                  aria-hidden="true"
+                  className="text-[var(--brand)]"
+                  size={18}
+                />
+                <h2 className="text-lg font-semibold text-stone-950">
+                  Cobranças e recibos
+                </h2>
+              </div>
+              <div className="space-y-3">
+                {patientBilling.map((entry) => (
+                  <div
+                    className="rounded-md border border-[var(--line)] p-3"
+                    key={entry.id}
+                  >
+                    <p className="font-semibold text-stone-950">
+                      {formatCurrency(entry.amountCents)}
+                    </p>
+                    <p className="mt-1 text-sm text-stone-500">
+                      {entry.serviceType} · {entry.paymentStatus} · {entry.invoiceStatus}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
           </section>
 
           {/* Anotações */}

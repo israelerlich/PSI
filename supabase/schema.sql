@@ -9,6 +9,20 @@ create type public.session_status as enum (
   'NAO_COMPARECEU'
 );
 create type public.payment_status as enum ('PENDENTE', 'PAGO');
+create type public.invoice_status as enum (
+  'not_required',
+  'ready',
+  'queued',
+  'issued',
+  'failed'
+);
+create type public.charge_status as enum (
+  'not_sent',
+  'pix_sent',
+  'paid',
+  'overdue'
+);
+create type public.receipt_status as enum ('not_ready', 'ready', 'sent');
 create type public.record_template as enum ('DAP', 'BIRP');
 create type public.session_origin as enum (
   'dashboard',
@@ -82,6 +96,22 @@ create table public.sessions (
   modality public.modality not null,
   status public.session_status not null default 'AGENDADA',
   payment_status public.payment_status not null default 'PENDENTE',
+  confirmation_status text not null default 'pending' check (
+    confirmation_status in (
+      'pending',
+      'confirmed',
+      'reschedule_requested',
+      'rescheduled',
+      'manual_review'
+    )
+  ),
+  attendance_status text not null default 'expected' check (
+    attendance_status in ('expected', 'present', 'missed', 'excused')
+  ),
+  amount_cents integer check (amount_cents >= 0),
+  invoice_status public.invoice_status not null default 'not_required',
+  charge_status public.charge_status not null default 'not_sent',
+  receipt_status public.receipt_status not null default 'not_ready',
   origin public.session_origin not null default 'dashboard',
   location text,
   created_at timestamptz not null default now(),
@@ -120,6 +150,87 @@ create table public.notes (
   body text not null,
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
+);
+
+create table public.billing_entries (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  patient_id uuid not null references public.patients (id) on delete restrict,
+  session_id uuid references public.sessions (id) on delete set null,
+  service_type text not null,
+  service_date timestamptz not null,
+  amount_cents integer not null check (amount_cents >= 0),
+  payment_status public.payment_status not null default 'PENDENTE',
+  charge_status public.charge_status not null default 'not_sent',
+  invoice_status public.invoice_status not null default 'not_required',
+  receipt_status public.receipt_status not null default 'not_ready',
+  due_date timestamptz not null,
+  paid_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.message_templates (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  title text not null,
+  category text not null check (
+    category in ('confirmacao', 'reagendamento', 'documentos', 'orientacao', 'cobranca')
+  ),
+  channel text not null default 'whatsapp' check (channel in ('whatsapp', 'email')),
+  approved boolean not null default false,
+  tone text not null,
+  body text not null,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.automation_rules (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  title text not null,
+  trigger_description text not null,
+  action_description text not null,
+  status text not null default 'active' check (status in ('active', 'paused')),
+  human_tone text not null,
+  last_run_at timestamptz,
+  created_at timestamptz not null default now(),
+  updated_at timestamptz not null default now()
+);
+
+create table public.clinical_attachments (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  patient_id uuid not null references public.patients (id) on delete restrict,
+  title text not null,
+  kind text not null check (kind in ('documento', 'anexo', 'termo', 'encaminhamento')),
+  storage_path text,
+  protected boolean not null default true,
+  created_at timestamptz not null default now()
+);
+
+create table public.patient_consents (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  patient_id uuid not null references public.patients (id) on delete restrict,
+  title text not null,
+  status text not null default 'pending' check (status in ('signed', 'pending', 'expired')),
+  signed_at timestamptz,
+  expires_at timestamptz,
+  created_at timestamptz not null default now()
+);
+
+create table public.patient_timeline (
+  id uuid primary key default gen_random_uuid(),
+  psychologist_id uuid not null references public.psychologist_profiles (id) on delete cascade,
+  patient_id uuid not null references public.patients (id) on delete restrict,
+  happened_at timestamptz not null,
+  title text not null,
+  detail text not null,
+  kind text not null check (
+    kind in ('sessao', 'evolucao', 'documento', 'financeiro', 'mensagem')
+  ),
+  created_at timestamptz not null default now()
 );
 
 create table public.waitlist_entries (
@@ -169,6 +280,11 @@ create index sessions_psychologist_starts_idx on public.sessions (psychologist_i
 create index patients_psychologist_archived_idx on public.patients (psychologist_id, archived);
 create index clinical_records_patient_created_idx on public.clinical_records (patient_id, created_at desc);
 create index notes_patient_created_idx on public.notes (patient_id, created_at desc);
+create index billing_entries_patient_service_idx on public.billing_entries (patient_id, service_date desc);
+create index billing_entries_psychologist_due_idx on public.billing_entries (psychologist_id, due_date);
+create index clinical_attachments_patient_created_idx on public.clinical_attachments (patient_id, created_at desc);
+create index patient_consents_patient_status_idx on public.patient_consents (patient_id, status);
+create index patient_timeline_patient_happened_idx on public.patient_timeline (patient_id, happened_at desc);
 create index notifications_psychologist_created_idx on public.notifications (psychologist_id, created_at desc);
 
 create or replace function public.prevent_clinical_record_delete_before_retention()
@@ -213,6 +329,12 @@ alter table public.sessions enable row level security;
 alter table public.personal_blocks enable row level security;
 alter table public.clinical_records enable row level security;
 alter table public.notes enable row level security;
+alter table public.billing_entries enable row level security;
+alter table public.message_templates enable row level security;
+alter table public.automation_rules enable row level security;
+alter table public.clinical_attachments enable row level security;
+alter table public.patient_consents enable row level security;
+alter table public.patient_timeline enable row level security;
 alter table public.waitlist_entries enable row level security;
 alter table public.notifications enable row level security;
 alter table public.whatsapp_conversations enable row level security;
@@ -262,6 +384,42 @@ with check (auth.uid() = psychologist_id);
 
 create policy "notes are owned by psychologist"
 on public.notes
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "billing entries are owned by psychologist"
+on public.billing_entries
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "message templates are owned by psychologist"
+on public.message_templates
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "automation rules are owned by psychologist"
+on public.automation_rules
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "clinical attachments are owned by psychologist"
+on public.clinical_attachments
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "patient consents are owned by psychologist"
+on public.patient_consents
+for all
+using (auth.uid() = psychologist_id)
+with check (auth.uid() = psychologist_id);
+
+create policy "patient timeline is owned by psychologist"
+on public.patient_timeline
 for all
 using (auth.uid() = psychologist_id)
 with check (auth.uid() = psychologist_id);

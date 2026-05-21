@@ -1,6 +1,6 @@
 import type { ClinicalRecord } from "@/lib/domain";
 import { Badge } from "./badge";
-import { Printer } from "lucide-react";
+import { LockKeyhole, Paperclip, Printer } from "lucide-react";
 import Link from "next/link";
 
 export function RecordCard({ record }: { record: ClinicalRecord }) {
@@ -41,7 +41,7 @@ export function RecordCard({ record }: { record: ClinicalRecord }) {
           </a>
         </div>
       </div>
-      <div className="mt-4 grid gap-3 md:grid-cols-3">
+      <div className="mt-4 grid grid-cols-1 gap-3 md:grid-cols-3">
         {record.fields.slice(0, 3).map((field) => (
           <div className="rounded-md bg-[var(--surface-muted)] p-3" key={field.label}>
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
@@ -51,6 +51,30 @@ export function RecordCard({ record }: { record: ClinicalRecord }) {
               {field.value}
             </p>
           </div>
+        ))}
+      </div>
+      {record.contextSummary ? (
+        <div className="mt-4 rounded-md border border-teal-200 bg-teal-50 p-3">
+          <p className="text-sm font-semibold text-teal-900">
+            Contexto e continuidade
+          </p>
+          <p className="mt-1 text-sm leading-6 text-teal-800">
+            {record.contextSummary}
+          </p>
+        </div>
+      ) : null}
+      <div className="mt-4 flex flex-wrap gap-2">
+        {(record.attachments ?? []).map((attachment) => (
+          <Badge key={attachment} variant="neutral">
+            <Paperclip aria-hidden="true" className="mr-1" size={13} />
+            {attachment}
+          </Badge>
+        ))}
+        {(record.consentIds ?? []).map((consentId) => (
+          <Badge key={consentId} variant="success">
+            <LockKeyhole aria-hidden="true" className="mr-1" size={13} />
+            Consentimento vinculado
+          </Badge>
         ))}
       </div>
       <p className="mt-4 text-sm font-medium text-stone-500">

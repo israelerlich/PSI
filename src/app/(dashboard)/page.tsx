@@ -6,7 +6,9 @@ import {
   CalendarDays,
   ClipboardCheck,
   Clock3,
+  FileCheck2,
   NotebookText,
+  ReceiptText,
   TimerReset,
   UserRound,
   UsersRound,
@@ -14,7 +16,10 @@ import {
 } from "lucide-react";
 import {
   agentSettings,
+  automationRules,
   availableSlots,
+  billingEntries,
+  messageTemplates,
   notes,
   notifications,
   patients,
@@ -36,6 +41,20 @@ const todaySessions = sessions.filter((session) =>
 const pendingPayments = sessions.filter(
   (session) => session.paymentStatus === "PENDENTE",
 ).length;
+const readyInvoices = billingEntries.filter(
+  (entry) => entry.invoiceStatus === "ready" || entry.invoiceStatus === "queued",
+).length;
+const confirmedSessions = sessions.filter(
+  (session) => session.confirmationStatus === "confirmed",
+).length;
+const concludedSessions = sessions.filter(
+  (session) => session.status === "CONCLUIDA",
+).length;
+const attendanceRate = Math.round(
+  (sessions.filter((session) => session.attendanceStatus === "present").length /
+    Math.max(1, concludedSessions)) *
+    100,
+);
 const openRecords = sessions.filter(
   (session) => session.documentationStatus !== "complete",
 ).length;
@@ -87,26 +106,33 @@ const operationalQueue = [
     meta: `${agentSettings.waitlistAcceptanceHours}h para aceitar`,
     tone: "neutral" as const,
   },
+  {
+    icon: ReceiptText,
+    title: "NFS-e e recibos",
+    detail: `${readyInvoices} atendimentos prontos para nota fiscal ou recibo.`,
+    meta: "Após pagamento",
+    tone: "neutral" as const,
+  },
 ];
 
 export default function DashboardHome() {
   return (
     <div
-      className="mx-auto grid w-full max-w-7xl gap-6 px-4 py-6 md:px-8 xl:grid-cols-[minmax(0,1fr)_380px]"
+      className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:px-8 xl:grid-cols-[minmax(0,1fr)_380px]"
       id="conteudo"
     >
       <div className="space-y-6">
         {/* Indicadores principais */}
         <section
           aria-label="Indicadores principais"
-          className="grid scroll-mt-24 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+          className="grid scroll-mt-24 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
           id="hoje"
         >
           <StatCard
             icon={CalendarClock}
             label="Sessões hoje"
             value={todaySessions.length.toString()}
-            detail="2 presenciais, 1 online"
+            detail={`${confirmedSessions} confirmadas automaticamente`}
           />
           <StatCard
             icon={UsersRound}
@@ -116,20 +142,20 @@ export default function DashboardHome() {
           />
           <StatCard
             icon={WalletCards}
-            label="Pendências"
+            label="Recebíveis"
             value={pendingPayments.toString()}
-            detail="Pagamentos ou documentos"
+            detail="Pix, recibos e NFS-e"
           />
           <StatCard
-            icon={NotebookText}
-            label="Prontuários"
-            value={records.length.toString()}
-            detail="Retenção mínima de 5 anos"
+            icon={FileCheck2}
+            label="Presença"
+            value={`${attendanceRate}%`}
+            detail="Lembretes reduzem faltas"
           />
         </section>
 
         {/* Fila + Paciente em foco */}
-        <section className="grid gap-4 lg:grid-cols-[0.95fr_1.05fr]">
+        <section className="grid grid-cols-1 gap-4 lg:grid-cols-[0.95fr_1.05fr]">
           <Panel
             eyebrow="Fila de trabalho"
             icon={ClipboardCheck}
@@ -154,7 +180,7 @@ export default function DashboardHome() {
             icon={UserRound}
             title={focusPatient.name}
           >
-            <div className="grid gap-4 md:grid-cols-[1fr_0.9fr]">
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_0.9fr]">
               <div>
                 <dl className="grid grid-cols-2 gap-3 text-sm">
                   <Info label="WhatsApp" value={focusPatient.whatsapp} />
@@ -212,11 +238,11 @@ export default function DashboardHome() {
             title="Próximas sessões"
           >
             <div className="overflow-hidden rounded-md border border-[var(--line)]">
-              <div className="grid grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
+              <div className="grid grid-cols-[80px_1.2fr_0.9fr_0.85fr_0.95fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
                 <span>Hora</span>
                 <span>Paciente</span>
-                <span>Status</span>
-                <span>Prontuário</span>
+                <span>Confirmação</span>
+                <span>Presença</span>
                 <span>Financeiro</span>
               </div>
               <div className="divide-y divide-[var(--line)]">
@@ -232,7 +258,7 @@ export default function DashboardHome() {
       {/* Coluna lateral */}
       <aside className="space-y-6">
         <Panel eyebrow="WhatsApp IA" icon={Bot} title="Recepção inteligente">
-          <div className="grid gap-3">
+          <div className="grid grid-cols-1 gap-3">
             <WorkflowStep
               icon={Bot}
               title="Triagem SDR"
@@ -252,12 +278,32 @@ export default function DashboardHome() {
 
           <div className="mt-5 rounded-md bg-teal-50 p-3 shadow-[0_0_0_1px_rgba(20,184,166,0.22)]">
             <p className="text-sm font-semibold text-teal-900">
-              Próxima resposta aprovada
+              Mensagens aprovadas
             </p>
             <p className="mt-2 text-pretty text-sm leading-6 text-teal-800">
-              &ldquo;Tenho esses horários disponíveis. Você prefere online ou
-              presencial?&rdquo;
+              {messageTemplates.filter((template) => template.approved).length} templates ativos para confirmação, documentos, reagendamento e cobrança.
             </p>
+          </div>
+        </Panel>
+
+        <Panel eyebrow="Automação" icon={FileCheck2} title="Fluxos ativos">
+          <div className="space-y-3">
+            {automationRules.map((rule) => (
+              <div
+                className="rounded-md border border-[var(--line)] p-3"
+                key={rule.id}
+              >
+                <div className="flex items-start justify-between gap-3">
+                  <p className="font-semibold text-stone-950">{rule.title}</p>
+                  <Badge variant={rule.status === "active" ? "success" : "neutral"}>
+                    {rule.status === "active" ? "Ativo" : "Pausado"}
+                  </Badge>
+                </div>
+                <p className="mt-2 text-sm leading-6 text-stone-600">
+                  {rule.action}
+                </p>
+              </div>
+            ))}
           </div>
         </Panel>
 

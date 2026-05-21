@@ -39,7 +39,7 @@ export default function PacientesPage() {
             action={{ label: "Adicionar paciente" }}
           />
         ) : (
-          <div className="grid gap-3 xl:grid-cols-2">
+          <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
             {activePatients.map((patient) => (
               <PatientCard key={patient.id} patient={patient} />
             ))}
