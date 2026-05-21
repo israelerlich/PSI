@@ -14,7 +14,7 @@ export function Panel({
   title: string;
 }) {
   return (
-    <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+    <section className="surface-card rounded-[10px] bg-white p-5">
       <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
         <div className="flex min-w-0 items-center gap-3">
           <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[var(--surface-muted)] text-[var(--brand)]">
@@ -29,7 +29,7 @@ export function Panel({
         </div>
         {action ? (
           <a
-            className="inline-flex h-10 items-center gap-2 rounded-md border border-[var(--line)] bg-white px-3 text-sm font-semibold text-stone-600 transition hover:bg-[var(--surface-muted)]"
+            className="tactile inline-flex h-10 items-center gap-2 rounded-md bg-white pl-3.5 pr-4 text-sm font-semibold text-stone-600 shadow-[var(--shadow-border)] hover:bg-[var(--surface-muted)] hover:shadow-[var(--shadow-border-hover)]"
             href={action.href ?? "#"}
           >
             <ChevronRight aria-hidden="true" size={16} strokeWidth={2} />

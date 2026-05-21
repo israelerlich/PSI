@@ -25,18 +25,18 @@ export default function WhatsAppPage() {
           />
         </div>
 
-        <div className="mt-5 rounded-md border border-teal-200 bg-teal-50 p-3">
+        <div className="mt-5 rounded-md bg-teal-50 p-3 shadow-[0_0_0_1px_rgba(20,184,166,0.22)]">
           <p className="text-sm font-semibold text-teal-900">
             Status do agente
           </p>
           <p className="mt-1 text-sm text-teal-800">Conectado e ativo</p>
         </div>
 
-        <div className="mt-5 rounded-md border border-teal-200 bg-teal-50 p-3">
+        <div className="mt-5 rounded-md bg-teal-50 p-3 shadow-[0_0_0_1px_rgba(20,184,166,0.22)]">
           <p className="text-sm font-semibold text-teal-900">
             Próxima resposta aprovada
           </p>
-          <p className="mt-2 text-sm leading-6 text-teal-800">
+          <p className="mt-2 text-pretty text-sm leading-6 text-teal-800">
             &ldquo;Tenho esses horários disponíveis. Você prefere online ou
             presencial?&rdquo;
           </p>
@@ -49,26 +49,35 @@ export default function WhatsAppPage() {
             <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500 mb-1">
               Persona
             </dt>
-            <dd className="font-medium text-stone-800">{agentSettings.persona}</dd>
+            <dd className="text-pretty font-medium text-stone-800">
+              {agentSettings.persona}
+            </dd>
           </div>
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500 mb-1">
               Abordagem
             </dt>
-            <dd className="font-medium text-stone-800">{agentSettings.approach}</dd>
+            <dd className="text-pretty font-medium text-stone-800">
+              {agentSettings.approach}
+            </dd>
           </div>
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500 mb-1">
               Preço
             </dt>
-            <dd className="font-medium text-stone-800">{agentSettings.pricingStrategy}</dd>
+            <dd className="text-pretty font-medium text-stone-800">
+              {agentSettings.pricingStrategy}
+            </dd>
           </div>
           <div>
             <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500 mb-1">
               Fila de espera
             </dt>
             <dd className="font-medium text-stone-800">
-              {agentSettings.waitlistAcceptanceHours} horas para aceitar
+              <span className="metric-number">
+                {agentSettings.waitlistAcceptanceHours}
+              </span>{" "}
+              horas para aceitar
             </dd>
           </div>
           <div>

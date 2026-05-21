@@ -13,13 +13,13 @@ export function RecordCard({ record }: { record: ClinicalRecord }) {
     }).format(new Date(value));
 
   return (
-    <article className="rounded-md border border-[var(--line)] p-4 transition hover:shadow-sm">
+    <article className="surface-card rounded-[10px] bg-white p-4">
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <p className="font-semibold text-stone-950">
             <Link
               href={`/prontuarios/${record.id}`}
-              className="hover:text-[var(--brand)] transition-colors"
+              className="transition-[color] duration-150 ease-out hover:text-[var(--brand)]"
             >
               {record.patientName}
             </Link>
@@ -32,7 +32,7 @@ export function RecordCard({ record }: { record: ClinicalRecord }) {
         <div className="flex flex-wrap gap-2">
           <Badge variant="neutral">{record.template}</Badge>
           <a
-            className="inline-flex items-center gap-2 rounded-md border border-[var(--line)] px-3 py-1.5 text-sm font-semibold text-stone-600 transition hover:bg-[var(--surface-muted)]"
+            className="tactile inline-flex h-10 items-center gap-2 rounded-md bg-white pl-3.5 pr-4 text-sm font-semibold text-stone-600 shadow-[var(--shadow-border)] hover:bg-[var(--surface-muted)] hover:shadow-[var(--shadow-border-hover)]"
             href={`/api/records/export/${record.id}`}
             target="_blank"
           >
@@ -47,7 +47,9 @@ export function RecordCard({ record }: { record: ClinicalRecord }) {
             <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
               {field.label}
             </p>
-            <p className="mt-2 text-sm leading-6 text-stone-700">{field.value}</p>
+            <p className="mt-2 text-pretty text-sm leading-6 text-stone-700">
+              {field.value}
+            </p>
           </div>
         ))}
       </div>

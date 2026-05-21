@@ -31,12 +31,12 @@ export function SessionRow({ session }: { session: TherapySession }) {
 
   return (
     <article className="grid gap-3 px-4 py-4 lg:grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] lg:items-center">
-      <div className="font-semibold text-stone-950">
+      <div className="metric-number font-semibold text-stone-950">
         {formatTime(session.startsAt)}
       </div>
       <div className="min-w-0">
         <p className="font-semibold text-stone-950">{session.patientName}</p>
-        <p className="mt-1 text-sm text-stone-500">
+        <p className="mt-1 text-pretty text-sm text-stone-500">
           {session.serviceType} · {session.modality} · {session.location}
         </p>
         <div className="mt-3 flex flex-wrap gap-2 lg:hidden">

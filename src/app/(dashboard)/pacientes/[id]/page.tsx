@@ -33,7 +33,7 @@ export default async function PacienteDetalhePage({
     <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
       <Link
         href="/pacientes"
-        className="mb-4 inline-flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-[var(--brand)] transition-colors"
+        className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-stone-600 transition-[color] duration-150 ease-out hover:text-[var(--brand)]"
       >
         <ArrowLeft size={16} />
         Voltar para pacientes
@@ -41,13 +41,13 @@ export default async function PacienteDetalhePage({
 
       <div className="grid gap-6 xl:grid-cols-[1fr_2fr]">
         {/* Dados do paciente */}
-        <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
+        <section className="surface-card rounded-[10px] bg-white p-5">
           <div className="flex items-center gap-3 mb-4">
             <div className="flex size-10 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--brand)]">
               <UserRound aria-hidden="true" size={20} strokeWidth={2} />
             </div>
             <div>
-              <h1 className="text-xl font-semibold text-stone-950">
+              <h1 className="text-balance text-xl font-semibold text-stone-950">
                 {patient.name}
               </h1>
               <p className="text-sm text-stone-500">{patient.whatsapp}</p>
@@ -93,8 +93,8 @@ export default async function PacienteDetalhePage({
         {/* Sessões, prontuários e anotações */}
         <div className="space-y-6">
           {/* Sessões */}
-          <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-stone-950 mb-4">
+          <section className="surface-card rounded-[10px] bg-white p-5">
+            <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
               Sessões ({patientSessions.length})
             </h2>
             {patientSessions.length === 0 ? (
@@ -118,8 +118,8 @@ export default async function PacienteDetalhePage({
           </section>
 
           {/* Prontuários */}
-          <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-            <h2 className="text-lg font-semibold text-stone-950 mb-4">
+          <section className="surface-card rounded-[10px] bg-white p-5">
+            <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
               Prontuários ({patientRecords.length})
             </h2>
             {patientRecords.length === 0 ? (
@@ -135,8 +135,8 @@ export default async function PacienteDetalhePage({
 
           {/* Anotações */}
           {patientNotes.length > 0 ? (
-            <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-              <h2 className="text-lg font-semibold text-stone-950 mb-4">
+            <section className="surface-card rounded-[10px] bg-white p-5">
+              <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
                 Anotações ({patientNotes.length})
               </h2>
               <div className="space-y-3">
@@ -166,7 +166,7 @@ function Info({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
         {label}
       </dt>
-      <dd className="mt-1 font-medium text-stone-800">{value}</dd>
+      <dd className="mt-1 text-pretty font-medium text-stone-800">{value}</dd>
     </div>
   );
 }

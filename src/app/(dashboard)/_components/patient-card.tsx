@@ -21,14 +21,14 @@ export function PatientCard({ patient }: { patient: Patient }) {
   return (
     <Link
       href={`/pacientes/${patient.id}`}
-      className="block rounded-md border border-[var(--line)] bg-white p-4 transition hover:shadow-md hover:-translate-y-0.5"
+      className="surface-card block rounded-[10px] bg-white p-4 transition-[transform] duration-150 ease-out hover:-translate-y-0.5"
     >
       <div className="flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="truncate font-semibold text-stone-950">
             {patient.name}
           </p>
-          <p className="mt-1 text-sm text-stone-500">
+          <p className="mt-1 text-pretty text-sm text-stone-500">
             {patient.whatsapp}
           </p>
         </div>

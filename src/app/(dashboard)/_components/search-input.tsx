@@ -18,7 +18,7 @@ export function SearchInput({
         size={18}
       />
       <input
-        className="h-11 w-full rounded-md border border-[var(--line)] bg-white pl-10 pr-8 text-sm outline-none transition placeholder:text-stone-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-teal-100"
+        className="h-11 w-full rounded-md border border-[var(--line)] bg-white pl-10 pr-8 text-sm outline-none transition-[border-color,box-shadow] duration-150 ease-out placeholder:text-stone-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-teal-100"
         autoComplete="off"
         placeholder={placeholder}
         type="search"
@@ -27,7 +27,7 @@ export function SearchInput({
       />
       {value ? (
         <button
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded p-0.5 text-stone-400 hover:text-stone-600"
+          className="tactile absolute right-1 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-stone-400 hover:bg-[var(--surface-muted)] hover:text-stone-600"
           onClick={() => onChange?.("")}
           type="button"
           aria-label="Limpar busca"

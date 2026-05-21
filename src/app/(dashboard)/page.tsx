@@ -186,7 +186,7 @@ export default function DashboardHome() {
                 <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
                   Linha clínica
                 </p>
-                <p className="mt-2 text-sm leading-6 text-stone-700">
+                <p className="mt-2 text-pretty text-sm leading-6 text-stone-700">
                   {focusPatientSessions.length} sessões registradas,{" "}
                   {focusPatientRecord
                     ? "prontuário iniciado"
@@ -250,11 +250,11 @@ export default function DashboardHome() {
             />
           </div>
 
-          <div className="mt-5 rounded-md border border-teal-200 bg-teal-50 p-3">
+          <div className="mt-5 rounded-md bg-teal-50 p-3 shadow-[0_0_0_1px_rgba(20,184,166,0.22)]">
             <p className="text-sm font-semibold text-teal-900">
               Próxima resposta aprovada
             </p>
-            <p className="mt-2 text-sm leading-6 text-teal-800">
+            <p className="mt-2 text-pretty text-sm leading-6 text-teal-800">
               &ldquo;Tenho esses horários disponíveis. Você prefere online ou
               presencial?&rdquo;
             </p>
@@ -271,7 +271,7 @@ export default function DashboardHome() {
                 <p className="font-medium text-stone-950">
                   {notification.title}
                 </p>
-                <p className="mt-1 text-sm leading-6 text-stone-600">
+                <p className="mt-1 text-pretty text-sm leading-6 text-stone-600">
                   {notification.detail}
                 </p>
                 <p className="mt-2 text-xs font-medium text-stone-500">
@@ -286,7 +286,7 @@ export default function DashboardHome() {
           <div className="space-y-3">
             {availableSlots.map((slot) => (
               <div
-                className="flex items-center justify-between gap-3 rounded-md border border-[var(--line)] p-3"
+                className="surface-card flex items-center justify-between gap-3 rounded-[10px] bg-white p-3"
                 key={slot.id}
               >
                 <div>
@@ -294,8 +294,10 @@ export default function DashboardHome() {
                     {formatDateTime(slot.startsAt)}
                   </p>
                   <p className="mt-1 text-sm text-stone-500">
-                    {slot.modality} · {formatTime(slot.startsAt)}-
-                    {formatTime(slot.endsAt)}
+                    {slot.modality} ·{" "}
+                    <span className="metric-number">
+                      {formatTime(slot.startsAt)}-{formatTime(slot.endsAt)}
+                    </span>
                   </p>
                 </div>
               </div>
@@ -323,7 +325,9 @@ function WorkflowStep({
       </div>
       <div>
         <p className="font-semibold text-stone-950">{title}</p>
-        <p className="mt-1 text-sm leading-6 text-stone-600">{detail}</p>
+        <p className="mt-1 text-pretty text-sm leading-6 text-stone-600">
+          {detail}
+        </p>
       </div>
     </div>
   );
@@ -335,7 +339,9 @@ function Info({ label, value }: { label: string; value: string }) {
       <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
         {label}
       </dt>
-      <dd className="mt-1 break-words font-medium text-stone-800">{value}</dd>
+      <dd className="mt-1 break-words text-pretty font-medium text-stone-800">
+        {value}
+      </dd>
     </div>
   );
 }

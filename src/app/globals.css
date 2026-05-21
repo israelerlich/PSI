@@ -13,6 +13,14 @@
   --success: #15803d;
   --warning: #a16207;
   --danger: #b91c1c;
+  --shadow-border:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.06),
+    0px 1px 2px -1px rgba(0, 0, 0, 0.06),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.04);
+  --shadow-border-hover:
+    0px 0px 0px 1px rgba(0, 0, 0, 0.08),
+    0px 1px 2px -1px rgba(0, 0, 0, 0.08),
+    0px 2px 4px 0px rgba(0, 0, 0, 0.06);
 }
 
 @theme inline {
@@ -46,6 +54,8 @@
 
 html {
   scroll-behavior: smooth;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -66,7 +76,6 @@ body {
   color: var(--foreground);
   font-family: var(--font-sans);
   text-rendering: optimizeLegibility;
-  -webkit-font-smoothing: antialiased;
 }
 
 button,
@@ -83,4 +92,29 @@ textarea {
 :focus-visible {
   outline: 2px solid var(--brand);
   outline-offset: 2px;
+}
+
+.surface-card {
+  box-shadow: var(--shadow-border);
+  transition-duration: 160ms;
+  transition-property: box-shadow;
+  transition-timing-function: ease-out;
+}
+
+.surface-card:hover {
+  box-shadow: var(--shadow-border-hover);
+}
+
+.tactile {
+  transition-duration: 150ms;
+  transition-property: scale, background-color, color, box-shadow;
+  transition-timing-function: ease-out;
+}
+
+.tactile:active {
+  scale: 0.96;
+}
+
+.metric-number {
+  font-variant-numeric: tabular-nums;
 }

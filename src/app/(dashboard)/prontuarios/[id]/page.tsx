@@ -26,14 +26,14 @@ export default async function ProntuarioDetalhePage({
       <div className="mb-4 flex items-center justify-between">
         <Link
           href="/prontuarios"
-          className="inline-flex items-center gap-2 text-sm font-medium text-stone-600 hover:text-[var(--brand)] transition-colors"
+          className="inline-flex min-h-10 items-center gap-2 text-sm font-medium text-stone-600 transition-[color] duration-150 ease-out hover:text-[var(--brand)]"
         >
           <ArrowLeft size={16} />
           Voltar para prontuários
         </Link>
 
         <a
-          className="inline-flex items-center gap-2 rounded-md border border-[var(--line)] px-3 py-1.5 text-sm font-semibold text-stone-600 transition hover:bg-[var(--surface-muted)]"
+          className="tactile inline-flex h-10 items-center gap-2 rounded-md bg-white pl-3.5 pr-4 text-sm font-semibold text-stone-600 shadow-[var(--shadow-border)] hover:bg-[var(--surface-muted)] hover:shadow-[var(--shadow-border-hover)]"
           href={`/api/records/export/${record.id}`}
           target="_blank"
         >
@@ -42,10 +42,10 @@ export default async function ProntuarioDetalhePage({
         </a>
       </div>
 
-      <section className="rounded-lg border border-[var(--line)] bg-white p-6 shadow-sm">
+      <section className="surface-card rounded-[10px] bg-white p-6">
         <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
           <div>
-            <h1 className="text-xl font-semibold text-stone-950">
+            <h1 className="text-balance text-xl font-semibold text-stone-950">
               {record.patientName}
             </h1>
             <p className="mt-1 text-sm text-stone-500">
@@ -65,7 +65,7 @@ export default async function ProntuarioDetalhePage({
               <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
                 {field.label}
               </p>
-              <p className="mt-2 text-sm leading-6 text-stone-700">
+              <p className="mt-2 text-pretty text-sm leading-6 text-stone-700">
                 {field.value}
               </p>
             </div>
@@ -73,7 +73,7 @@ export default async function ProntuarioDetalhePage({
         </div>
 
         <div className="mt-6 pt-4 border-t border-[var(--line)]">
-          <p className="text-sm text-stone-500">
+          <p className="text-pretty text-sm text-stone-500">
             Retenção obrigatória até {formatDate(record.retentionUntil)} (5 anos)
           </p>
         </div>

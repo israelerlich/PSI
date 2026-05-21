@@ -56,7 +56,7 @@ export function MobileNav({
             <p className="text-base font-semibold text-stone-950">Clínica IA</p>
           </div>
           <button
-            className="rounded-md p-1.5 text-stone-500 hover:bg-[var(--surface-muted)] hover:text-stone-700"
+            className="tactile flex size-10 items-center justify-center rounded-md text-stone-500 hover:bg-[var(--surface-muted)] hover:text-stone-700"
             onClick={onClose}
             type="button"
             aria-label="Fechar menu"
@@ -74,7 +74,7 @@ export function MobileNav({
             return (
               <Link
                 className={clsx(
-                  "flex items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition",
+                  "flex min-h-11 items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-[background-color,color] duration-150 ease-out",
                   isActive
                     ? "bg-[var(--brand-subtle)] text-[var(--brand-strong)]"
                     : "text-stone-600 hover:bg-[var(--surface-muted)]",
