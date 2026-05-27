@@ -4,7 +4,6 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Activity,
-  Bot,
   CalendarDays,
   FileText,
   HeartPulse,
@@ -22,7 +21,6 @@ const navItems = [
   { label: "Pacientes", href: "/pacientes", icon: UsersRound },
   { label: "Prontuários", href: "/prontuarios", icon: FileText },
   { label: "Financeiro", href: "/financeiro", icon: ReceiptText },
-  { label: "WhatsApp IA", href: "/whatsapp", icon: Bot },
   { label: "Compliance", href: "/compliance", icon: ShieldCheck },
 ];
 
