@@ -1,4 +1,5 @@
 import type { LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 export function EmptyState({
   icon: Icon,
@@ -12,23 +13,18 @@ export function EmptyState({
   action?: { label: string; href?: string };
 }) {
   return (
-    <div className="flex flex-col items-center justify-center rounded-[10px] border-2 border-dashed border-[var(--line)] bg-white px-6 py-12 text-center">
-      <div className="flex size-12 items-center justify-center rounded-full bg-[var(--surface-muted)] text-stone-400">
-        <Icon aria-hidden="true" size={24} strokeWidth={1.5} />
+    <div className="card flex flex-col items-center justify-center px-6 py-14 text-center">
+      <div className="flex size-12 items-center justify-center rounded-full bg-[var(--blue-soft)] text-[var(--blue)]">
+        <Icon aria-hidden="true" size={22} strokeWidth={1.6} />
       </div>
-      <h3 className="mt-4 text-balance text-base font-semibold text-stone-700">
-        {title}
-      </h3>
-      <p className="mt-2 max-w-sm text-pretty text-sm text-stone-500">
+      <h3 className="mt-4 text-[15px] font-semibold text-[var(--ink)]">{title}</h3>
+      <p className="mt-1.5 max-w-sm text-[13px] leading-relaxed text-[var(--ink-4)]">
         {description}
       </p>
       {action ? (
-        <a
-          className="tactile mt-5 inline-flex h-10 items-center gap-2 rounded-md bg-[var(--brand)] px-4 text-sm font-semibold text-white shadow-[var(--shadow-border)] hover:bg-[var(--brand-strong)]"
-          href={action.href ?? "#"}
-        >
+        <Link href={action.href ?? "#"} className="btn btn-primary mt-5">
           {action.label}
-        </a>
+        </Link>
       ) : null}
     </div>
   );

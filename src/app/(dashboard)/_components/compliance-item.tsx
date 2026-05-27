@@ -1,15 +1,12 @@
-import { CheckCircle2 } from "lucide-react";
+import { Check } from "lucide-react";
 
 export function ComplianceItem({ text }: { text: string }) {
   return (
-    <div className="flex gap-3">
-      <CheckCircle2
-        aria-hidden="true"
-        className="mt-0.5 shrink-0 text-[var(--brand)]"
-        size={18}
-        strokeWidth={2}
-      />
-      <p className="text-sm leading-6 text-stone-600">{text}</p>
+    <div className="flex items-start gap-3 border-b border-[var(--border)] py-3 last:border-b-0 last:pb-0">
+      <div className="mt-0.5 flex size-5 shrink-0 items-center justify-center rounded-full bg-[var(--success-soft)] text-[var(--success)]">
+        <Check aria-hidden="true" size={12} strokeWidth={2.4} />
+      </div>
+      <p className="text-[13.5px] leading-relaxed text-[var(--ink-2)]">{text}</p>
     </div>
   );
 }

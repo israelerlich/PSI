@@ -8,6 +8,7 @@ import { SearchInput } from "../_components/search-input";
 import { FilterBar } from "../_components/filter-bar";
 import { SessionRow } from "../_components/session-row";
 import { EmptyState } from "../_components/empty-state";
+import { StatCard } from "../_components/stat-card";
 
 const PERIODS = ["Hoje", "Semana", "Mês"] as const;
 
@@ -23,107 +24,95 @@ export default function AgendaPage() {
   });
 
   const confirmed = sessions.filter(
-    (session) => session.confirmationStatus === "confirmed",
+    (s) => s.confirmationStatus === "confirmed",
   ).length;
   const rescheduled = sessions.filter(
-    (session) => session.confirmationStatus === "rescheduled",
+    (s) => s.confirmationStatus === "rescheduled",
   ).length;
-  const present = sessions.filter(
-    (session) => session.attendanceStatus === "present",
-  ).length;
+  const present = sessions.filter((s) => s.attendanceStatus === "present").length;
 
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
-      <Panel
-        action={{ label: "Nova sessão" }}
-        eyebrow="Agenda"
-        icon={CalendarDays}
-        title="Próximas sessões"
-      >
-        <div className="mb-5 grid grid-cols-1 gap-3 md:grid-cols-3">
-          <AgendaMetric
-            icon={BellRing}
-            label="Lembretes"
-            value={`${automationRules.length} ativos`}
-            detail="24h antes e reforço no dia"
-          />
-          <AgendaMetric
-            icon={RefreshCcw}
-            label="Reagendamentos"
-            value={rescheduled.toString()}
-            detail="Sem troca manual"
-          />
-          <AgendaMetric
-            icon={UserCheck}
-            label="Presença"
-            value={present.toString()}
-            detail={`${confirmed} confirmações registradas`}
-          />
-        </div>
-
-        <div className="mb-4 grid grid-cols-1 gap-3 lg:grid-cols-[1fr_auto]">
-          <SearchInput
-            placeholder="Buscar por paciente, status ou modalidade..."
-            value={search}
-            onChange={setSearch}
-          />
-          <FilterBar
-            options={PERIODS}
-            selected={period}
-            onChange={setPeriod}
-          />
-        </div>
-
-        {filtered.length === 0 ? (
-          <EmptyState
-            icon={CalendarDays}
-            title="Nenhuma sessão encontrada"
-            description="Tente ajustar os filtros ou criar uma nova sessão."
-          />
-        ) : (
-          <div className="overflow-hidden rounded-md border border-[var(--line)]">
-            <div className="grid grid-cols-[80px_1.2fr_0.9fr_0.85fr_0.95fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
-              <span>Hora</span>
-              <span>Paciente</span>
-              <span>Confirmação</span>
-              <span>Presença</span>
-              <span>Financeiro</span>
-            </div>
-            <div className="divide-y divide-[var(--line)]">
-              {filtered.map((session) => (
-                <SessionRow key={session.id} session={session} />
-              ))}
-            </div>
-          </div>
-        )}
-      </Panel>
-    </div>
-  );
-}
-
-function AgendaMetric({
-  detail,
-  icon: Icon,
-  label,
-  value,
-}: {
-  detail: string;
-  icon: React.ComponentType<{
-    className?: string;
-    size?: number;
-    strokeWidth?: number;
-  }>;
-  label: string;
-  value: string;
-}) {
-  return (
-    <div className="rounded-md border border-[var(--line)] bg-[var(--surface-muted)] p-4">
-      <div className="flex items-center justify-between gap-3">
-        <p className="text-sm font-medium text-stone-500">{label}</p>
-        <Icon aria-hidden="true" className="text-[var(--brand)]" size={18} />
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
+      <div className="mb-6">
+        <p className="label">Agenda</p>
+        <h2 className="mt-1 text-[20px] font-semibold tracking-tight text-[var(--ink)]">
+          Sessões e confirmações
+        </h2>
+        <p className="mt-1 text-[13px] text-[var(--ink-4)]">
+          Acompanhe lembretes automáticos, reagendamentos e presença.
+        </p>
       </div>
-      <p className="mt-2 text-2xl font-semibold text-stone-950">{value}</p>
-      <p className="mt-1 text-sm text-stone-500">{detail}</p>
+
+      <section className="grid grid-cols-1 gap-3 sm:grid-cols-3">
+        <StatCard
+          icon={BellRing}
+          label="Lembretes ativos"
+          value={automationRules.length.toString()}
+          detail="24h antes e reforço no dia"
+        />
+        <StatCard
+          icon={RefreshCcw}
+          label="Reagendamentos"
+          value={rescheduled.toString()}
+          detail="Sem troca manual"
+        />
+        <StatCard
+          icon={UserCheck}
+          label="Presença"
+          value={`${present}/${confirmed}`}
+          detail="Confirmações registradas"
+        />
+      </section>
+
+      <div className="mt-6">
+        <Panel
+          eyebrow="Agenda"
+          icon={CalendarDays}
+          title="Próximas sessões"
+          action={{ label: "Nova sessão" }}
+          padded={false}
+        >
+          <div className="flex flex-wrap items-center justify-between gap-3 border-b border-[var(--border)] px-5 py-3">
+            <div className="min-w-[260px] flex-1">
+              <SearchInput
+                placeholder="Buscar por paciente..."
+                value={search}
+                onChange={setSearch}
+              />
+            </div>
+            <FilterBar
+              options={PERIODS}
+              selected={period}
+              onChange={setPeriod}
+            />
+          </div>
+
+          {filtered.length === 0 ? (
+            <div className="p-5">
+              <EmptyState
+                icon={CalendarDays}
+                title="Nenhuma sessão encontrada"
+                description="Tente ajustar os filtros ou criar uma nova sessão."
+              />
+            </div>
+          ) : (
+            <>
+              <div className="grid grid-cols-[78px_1.3fr_0.85fr_0.8fr_0.85fr] border-b border-[var(--border)] bg-[var(--surface-2)] px-5 py-2.5 max-lg:hidden">
+                <span className="label-strong">Hora</span>
+                <span className="label-strong">Paciente</span>
+                <span className="label-strong">Confirmação</span>
+                <span className="label-strong">Presença</span>
+                <span className="label-strong">Financeiro</span>
+              </div>
+              <div className="divide-y divide-[var(--border)]">
+                {filtered.map((session) => (
+                  <SessionRow key={session.id} session={session} />
+                ))}
+              </div>
+            </>
+          )}
+        </Panel>
+      </div>
     </div>
   );
 }

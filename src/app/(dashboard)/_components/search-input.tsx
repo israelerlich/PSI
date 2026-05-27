@@ -14,11 +14,12 @@ export function SearchInput({
       <span className="sr-only">{placeholder}</span>
       <Search
         aria-hidden="true"
-        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-stone-400"
-        size={18}
+        className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-[var(--ink-4)]"
+        size={16}
+        strokeWidth={1.8}
       />
       <input
-        className="h-11 w-full min-w-0 rounded-md border border-[var(--line)] bg-white pl-10 pr-8 text-sm outline-none transition-[border-color,box-shadow] duration-150 ease-out placeholder:text-stone-400 focus:border-[var(--brand)] focus:ring-2 focus:ring-teal-100"
+        className="input pl-10 pr-10"
         autoComplete="off"
         placeholder={placeholder}
         type="search"
@@ -27,12 +28,12 @@ export function SearchInput({
       />
       {value ? (
         <button
-          className="tactile absolute right-1 top-1/2 flex size-10 -translate-y-1/2 items-center justify-center rounded-md text-stone-400 hover:bg-[var(--surface-muted)] hover:text-stone-600"
-          onClick={() => onChange?.("")}
           type="button"
           aria-label="Limpar busca"
+          onClick={() => onChange?.("")}
+          className="btn btn-ghost btn-sm absolute right-1 top-1/2 -translate-y-1/2 size-8 px-0"
         >
-          <X size={16} />
+          <X size={14} strokeWidth={1.8} />
         </button>
       ) : null}
     </label>

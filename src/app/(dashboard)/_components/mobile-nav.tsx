@@ -2,22 +2,22 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import clsx from "clsx";
-import { X } from "lucide-react";
 import {
   Activity,
   Bot,
   CalendarDays,
   FileText,
-  HeartHandshake,
+  HeartPulse,
   ReceiptText,
   ShieldCheck,
   UsersRound,
+  X,
 } from "lucide-react";
 import { psychologistProfile } from "@/lib/mock-data";
+import clsx from "clsx";
 
 const navItems = [
-  { label: "Hoje", href: "/", icon: Activity },
+  { label: "Visão geral", href: "/", icon: Activity },
   { label: "Agenda", href: "/agenda", icon: CalendarDays },
   { label: "Pacientes", href: "/pacientes", icon: UsersRound },
   { label: "Prontuários", href: "/prontuarios", icon: FileText },
@@ -39,70 +39,75 @@ export function MobileNav({
     <>
       {open ? (
         <div
-          className="fixed inset-0 z-40 bg-black/40 lg:hidden"
+          className="fixed inset-0 z-40 bg-[var(--ink)]/30 backdrop-blur-sm lg:hidden"
           onClick={onClose}
           aria-hidden="true"
         />
       ) : null}
       <div
         className={clsx(
-          "fixed inset-y-0 left-0 z-50 w-72 bg-white shadow-xl transition-transform duration-200 ease-out lg:hidden",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r border-[var(--border)] bg-[var(--surface)] shadow-[var(--shadow-pop)] transition-transform duration-200 ease-out lg:hidden",
           open ? "translate-x-0" : "-translate-x-full",
         )}
       >
-        <div className="flex items-center justify-between border-b border-[var(--line)] px-5 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex size-10 items-center justify-center rounded-md bg-[var(--brand)] text-white">
-              <HeartHandshake aria-hidden="true" size={22} strokeWidth={1.8} />
+        <div className="flex h-16 items-center justify-between border-b border-[var(--border)] px-5">
+          <div className="flex items-center gap-2.5">
+            <div className="flex size-8 items-center justify-center rounded-md bg-[var(--blue)] text-white">
+              <HeartPulse aria-hidden="true" size={17} strokeWidth={2.2} />
             </div>
-            <p className="text-base font-semibold text-stone-950">Clínica IA</p>
+            <p className="text-[14px] font-semibold text-[var(--ink)]">
+              Clínica IA
+            </p>
           </div>
           <button
-            className="tactile flex size-10 items-center justify-center rounded-md text-stone-500 hover:bg-[var(--surface-muted)] hover:text-stone-700"
-            onClick={onClose}
             type="button"
             aria-label="Fechar menu"
+            onClick={onClose}
+            className="btn btn-ghost size-9 px-0"
           >
-            <X size={20} strokeWidth={2} />
+            <X aria-hidden="true" size={18} strokeWidth={1.8} />
           </button>
         </div>
 
-        <nav aria-label="Navegação principal" className="space-y-1 px-3 py-4">
-          {navItems.map((item) => {
-            const isActive =
-              item.href === "/"
-                ? pathname === "/"
-                : pathname.startsWith(item.href);
-            return (
-              <Link
-                className={clsx(
-                  "flex min-h-11 items-center gap-3 rounded-md px-4 py-3 text-sm font-medium transition-[background-color,color] duration-150 ease-out",
-                  isActive
-                    ? "bg-[var(--brand-subtle)] text-[var(--brand-strong)]"
-                    : "text-stone-600 hover:bg-[var(--surface-muted)]",
-                )}
-                href={item.href}
-                key={item.href}
-                onClick={onClose}
-              >
-                <item.icon aria-hidden="true" size={20} strokeWidth={1.9} />
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav
+          aria-label="Navegação principal"
+          className="flex-1 overflow-y-auto px-3 py-4"
+        >
+          <ul className="flex flex-col gap-0.5">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/"
+                  ? pathname === "/"
+                  : pathname.startsWith(item.href);
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={onClose}
+                    data-active={isActive}
+                    className="nav-link min-h-11"
+                  >
+                    <item.icon
+                      aria-hidden="true"
+                      size={17}
+                      strokeWidth={1.8}
+                      className="text-[var(--ink-4)]"
+                    />
+                    <span className="flex-1">{item.label}</span>
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
         </nav>
 
-        <div className="absolute bottom-0 left-0 right-0 border-t border-[var(--line)] px-5 py-4">
-          <p className="text-xs font-semibold uppercase tracking-[0.16em] text-stone-500">
-            Conta
+        <div className="border-t border-[var(--border)] p-4">
+          <p className="text-[13px] font-semibold text-[var(--ink)]">
+            {psychologistProfile.name}
           </p>
-          <div className="mt-2 space-y-1 text-sm">
-            <p className="font-semibold text-stone-900">
-              {psychologistProfile.name}
-            </p>
-            <p className="text-stone-500">{psychologistProfile.crp}</p>
-            <p className="text-stone-500">{psychologistProfile.city}</p>
-          </div>
+          <p className="mt-0.5 text-[11.5px] text-[var(--ink-4)]">
+            {psychologistProfile.crp}
+          </p>
         </div>
       </div>
     </>

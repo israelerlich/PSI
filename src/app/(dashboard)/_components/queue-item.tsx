@@ -14,28 +14,37 @@ export function QueueItem({
   title: string;
   tone?: "danger" | "warning" | "neutral";
 }) {
+  const accent =
+    tone === "danger"
+      ? "bg-[var(--danger-soft)] text-[var(--danger)]"
+      : tone === "warning"
+        ? "bg-[var(--warning-soft)] text-[var(--warning)]"
+        : "bg-[var(--blue-soft)] text-[var(--blue)]";
+
+  const metaColor =
+    tone === "danger"
+      ? "text-[var(--danger-text)]"
+      : tone === "warning"
+        ? "text-[var(--warning-text)]"
+        : "text-[var(--ink-4)]";
+
   return (
-    <article
-      className={clsx(
-        "rounded-md p-3 shadow-[var(--shadow-border)]",
-        tone === "danger" && "bg-rose-50",
-        tone === "warning" && "bg-amber-50",
-        tone === "neutral" && "bg-stone-50",
-      )}
-    >
-      <div className="flex gap-3">
-        <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-white/75 text-stone-800">
-          <Icon aria-hidden="true" size={17} />
-        </div>
-        <div>
-          <p className="font-semibold text-stone-950">{title}</p>
-          <p className="mt-1 text-pretty text-sm leading-6 text-stone-700">
-            {detail}
-          </p>
-          <p className="mt-2 text-xs font-bold uppercase tracking-[0.1em] text-stone-500">
+    <article className="flex items-start gap-3 border-b border-[var(--border)] px-5 py-4 last:border-b-0">
+      <div className={clsx("flex size-9 shrink-0 items-center justify-center rounded-md", accent)}>
+        <Icon aria-hidden="true" size={16} strokeWidth={1.8} />
+      </div>
+      <div className="min-w-0 flex-1">
+        <div className="flex items-baseline justify-between gap-3">
+          <h3 className="h-card text-[14px] font-semibold text-[var(--ink)]">
+            {title}
+          </h3>
+          <span className={clsx("shrink-0 text-[11px] font-medium", metaColor)}>
             {meta}
-          </p>
+          </span>
         </div>
+        <p className="mt-1 text-[13px] leading-snug text-[var(--ink-3)]">
+          {detail}
+        </p>
       </div>
     </article>
   );

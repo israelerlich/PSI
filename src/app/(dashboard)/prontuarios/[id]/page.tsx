@@ -22,60 +22,66 @@ export default async function ProntuarioDetalhePage({
     }).format(new Date(value));
 
   return (
-    <div className="mx-auto w-full max-w-3xl px-4 py-6 md:px-8">
-      <div className="mb-4 flex items-center justify-between">
+    <div className="mx-auto w-full max-w-3xl px-4 py-6 md:px-8 md:py-8">
+      <div className="mb-4 flex items-center justify-between gap-3">
         <Link
           href="/prontuarios"
-          className="inline-flex min-h-10 items-center gap-2 text-sm font-medium text-stone-600 transition-[color] duration-150 ease-out hover:text-[var(--brand)]"
+          className="btn btn-ghost btn-sm -ml-2 inline-flex"
         >
-          <ArrowLeft size={16} />
+          <ArrowLeft size={14} strokeWidth={1.8} />
           Voltar para prontuários
         </Link>
-
-        <a
-          className="tactile inline-flex h-10 items-center gap-2 rounded-md bg-white pl-3.5 pr-4 text-sm font-semibold text-stone-600 shadow-[var(--shadow-border)] hover:bg-[var(--surface-muted)] hover:shadow-[var(--shadow-border-hover)]"
+        <Link
           href={`/api/records/export/${record.id}`}
           target="_blank"
+          className="btn btn-secondary btn-sm"
         >
-          <Printer aria-hidden="true" size={15} />
+          <Printer size={14} strokeWidth={1.8} />
           Exportar
-        </a>
+        </Link>
       </div>
 
-      <section className="surface-card rounded-[10px] bg-white p-6">
-        <div className="flex flex-wrap items-start justify-between gap-3 mb-6">
-          <div>
-            <h1 className="text-balance text-xl font-semibold text-stone-950">
-              {record.patientName}
-            </h1>
-            <p className="mt-1 text-sm text-stone-500">
-              Sessão em {formatDate(record.sessionDate)} · criado em{" "}
-              {formatDate(record.createdAt)}
-            </p>
-          </div>
-          <Badge variant="neutral">{record.template}</Badge>
-        </div>
-
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-          {record.fields.map((field) => (
-            <div
-              className="rounded-md bg-[var(--surface-muted)] p-4"
-              key={field.label}
-            >
-              <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
-                {field.label}
-              </p>
-              <p className="mt-2 text-pretty text-sm leading-6 text-stone-700">
-                {field.value}
+      <section className="card">
+        <header className="border-b border-[var(--border)] px-6 py-5">
+          <div className="flex flex-wrap items-start justify-between gap-3">
+            <div>
+              <h1 className="h-page">{record.patientName}</h1>
+              <p className="mt-1 text-[13px] text-[var(--ink-4)]">
+                Sessão em {formatDate(record.sessionDate)} · criado em{" "}
+                {formatDate(record.createdAt)}
               </p>
             </div>
-          ))}
-        </div>
+            <Badge variant="info">{record.template}</Badge>
+          </div>
+        </header>
 
-        <div className="mt-6 pt-4 border-t border-[var(--line)]">
-          <p className="text-pretty text-sm text-stone-500">
-            Retenção obrigatória até {formatDate(record.retentionUntil)} (5 anos)
-          </p>
+        <div className="p-6">
+          <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+            {record.fields.map((field) => (
+              <div
+                key={field.label}
+                className="rounded-md bg-[var(--surface-2)] p-4"
+              >
+                <p className="label">{field.label}</p>
+                <p className="mt-1.5 text-[13.5px] leading-relaxed text-[var(--ink-2)]">
+                  {field.value}
+                </p>
+              </div>
+            ))}
+          </div>
+
+          <div className="mt-5 rounded-md border border-[#cddfff] bg-[var(--blue-soft)] p-4">
+            <p className="text-[12px] font-semibold text-[var(--blue-text)]">
+              Retenção obrigatória
+            </p>
+            <p className="mt-0.5 text-[13px] text-[var(--blue-text)]">
+              Até{" "}
+              <span className="metric-number font-semibold">
+                {formatDate(record.retentionUntil)}
+              </span>{" "}
+              — cinco anos conforme política da Clínica IA.
+            </p>
+          </div>
         </div>
       </section>
     </div>

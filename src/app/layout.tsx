@@ -1,10 +1,12 @@
 import type { Metadata } from "next";
+import { GeistSans } from "geist/font/sans";
+import { GeistMono } from "geist/font/mono";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Clínica IA | Dashboard para Psicólogos",
+  title: "Clínica IA — Painel do psicólogo",
   description:
-    "Plataforma SaaS para psicólogos com agenda, pacientes, prontuários e WhatsApp IA administrativo.",
+    "Plataforma de gestão para psicólogos: agenda, pacientes, prontuários, financeiro e WhatsApp IA administrativo.",
 };
 
 export default function RootLayout({
@@ -13,7 +15,10 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="pt-BR" className="h-full antialiased">
+    <html
+      lang="pt-BR"
+      className={`${GeistSans.variable} ${GeistMono.variable} h-full antialiased`}
+    >
       <body className="min-h-full flex flex-col">{children}</body>
     </html>
   );

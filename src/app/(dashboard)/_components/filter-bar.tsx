@@ -13,25 +13,28 @@ export function FilterBar<T extends string>({
 }) {
   return (
     <div
-      aria-label="Filtro de período"
-      className="grid min-w-0 grid-cols-3 rounded-[12px] bg-white p-1 text-sm font-semibold shadow-[var(--shadow-border)]"
       role="group"
+      aria-label="Filtros"
+      className="inline-flex h-9 items-center gap-0 rounded-md border border-[var(--border)] bg-[var(--surface)] p-0.5"
     >
-      {options.map((option) => (
-        <button
-          className={clsx(
-            "tactile h-10 min-w-0 rounded-md px-3 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--brand)]",
-            option === selected
-              ? "bg-[var(--brand)] text-white"
-              : "text-stone-600 hover:bg-[var(--surface-muted)]",
-          )}
-          key={option}
-          type="button"
-          onClick={() => onChange(option)}
-        >
-          {option}
-        </button>
-      ))}
+      {options.map((option) => {
+        const isActive = option === selected;
+        return (
+          <button
+            key={option}
+            type="button"
+            onClick={() => onChange(option)}
+            className={clsx(
+              "h-8 rounded-[5px] px-3 text-[12.5px] font-medium transition-colors",
+              isActive
+                ? "bg-[var(--blue)] text-white shadow-sm"
+                : "text-[var(--ink-3)] hover:bg-[var(--surface-3)] hover:text-[var(--ink)]",
+            )}
+          >
+            {option}
+          </button>
+        );
+      })}
     </div>
   );
 }

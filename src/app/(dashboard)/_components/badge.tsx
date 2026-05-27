@@ -3,12 +3,27 @@ import clsx from "clsx";
 type BadgeVariant = "neutral" | "success" | "warning" | "danger" | "info" | "brand";
 
 const variantStyles: Record<BadgeVariant, string> = {
-  neutral: "border-stone-200 bg-stone-100 text-stone-700",
-  success: "border-emerald-200 bg-emerald-50 text-emerald-800",
-  warning: "border-amber-200 bg-amber-50 text-amber-800",
-  danger: "border-rose-200 bg-rose-50 text-rose-800",
-  info: "border-blue-200 bg-blue-50 text-blue-800",
-  brand: "border-teal-200 bg-teal-50 text-teal-800",
+  neutral:
+    "bg-[var(--surface-3)] text-[var(--ink-3)] border-[var(--border)]",
+  success:
+    "bg-[var(--success-soft)] text-[var(--success-text)] border-[#bfe3cf]",
+  warning:
+    "bg-[var(--warning-soft)] text-[var(--warning-text)] border-[#f3d8a3]",
+  danger:
+    "bg-[var(--danger-soft)] text-[var(--danger-text)] border-[#f3bcbc]",
+  info:
+    "bg-[var(--blue-soft)] text-[var(--blue-text)] border-[#cddfff]",
+  brand:
+    "bg-[var(--blue-soft)] text-[var(--blue-text)] border-[#cddfff]",
+};
+
+const dotColor: Record<BadgeVariant, string> = {
+  neutral: "bg-[var(--ink-5)]",
+  success: "bg-[var(--success)]",
+  warning: "bg-[var(--warning)]",
+  danger: "bg-[var(--danger)]",
+  info: "bg-[var(--blue)]",
+  brand: "bg-[var(--blue)]",
 };
 
 export function Badge({
@@ -23,11 +38,15 @@ export function Badge({
   return (
     <span
       className={clsx(
-        "inline-flex min-h-7 w-fit items-center rounded-md border px-2.5 py-1 text-xs font-bold uppercase tracking-[0.08em]",
+        "inline-flex h-[22px] items-center gap-1.5 rounded-full border px-2 text-[11.5px] font-medium leading-none",
         variantStyles[variant],
         className,
       )}
     >
+      <span
+        aria-hidden="true"
+        className={clsx("inline-block size-1.5 rounded-full", dotColor[variant])}
+      />
       {children}
     </span>
   );

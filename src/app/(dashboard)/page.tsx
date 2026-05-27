@@ -31,40 +31,38 @@ import { Panel } from "./_components/panel";
 import { QueueItem } from "./_components/queue-item";
 import { SessionRow } from "./_components/session-row";
 import { Badge } from "./_components/badge";
+import { WorkflowStep } from "./_components/workflow-step";
+import Link from "next/link";
 
 const todayIso = "2026-05-16";
 
-const activePatients = patients.filter((patient) => !patient.archived);
-const todaySessions = sessions.filter((session) =>
-  session.startsAt.startsWith(todayIso),
-);
+const activePatients = patients.filter((p) => !p.archived);
+const todaySessions = sessions.filter((s) => s.startsAt.startsWith(todayIso));
 const pendingPayments = sessions.filter(
-  (session) => session.paymentStatus === "PENDENTE",
+  (s) => s.paymentStatus === "PENDENTE",
 ).length;
 const readyInvoices = billingEntries.filter(
-  (entry) => entry.invoiceStatus === "ready" || entry.invoiceStatus === "queued",
+  (e) => e.invoiceStatus === "ready" || e.invoiceStatus === "queued",
 ).length;
 const confirmedSessions = sessions.filter(
-  (session) => session.confirmationStatus === "confirmed",
+  (s) => s.confirmationStatus === "confirmed",
 ).length;
-const concludedSessions = sessions.filter(
-  (session) => session.status === "CONCLUIDA",
-).length;
+const concludedSessions = sessions.filter((s) => s.status === "CONCLUIDA").length;
 const attendanceRate = Math.round(
-  (sessions.filter((session) => session.attendanceStatus === "present").length /
+  (sessions.filter((s) => s.attendanceStatus === "present").length /
     Math.max(1, concludedSessions)) *
     100,
 );
 const openRecords = sessions.filter(
-  (session) => session.documentationStatus !== "complete",
+  (s) => s.documentationStatus !== "complete",
 ).length;
 const focusPatient =
-  patients.find((patient) => patient.id === "pat_ana") ?? patients[0];
+  patients.find((p) => p.id === "pat_ana") ?? patients[0];
 const focusPatientSessions = sessions.filter(
-  (session) => session.patientId === focusPatient.id,
+  (s) => s.patientId === focusPatient.id,
 );
 const focusPatientRecord = records.find(
-  (record) => record.patientId === focusPatient.id,
+  (r) => r.patientId === focusPatient.id,
 );
 
 const formatDateTime = (value: string) =>
@@ -96,7 +94,7 @@ const operationalQueue = [
     icon: NotebookText,
     title: "Prontuários a finalizar",
     detail: `${openRecords} sessões sem prontuário concluído.`,
-    meta: "Antes do fim do dia",
+    meta: "Hoje",
     tone: "warning" as const,
   },
   {
@@ -117,263 +115,251 @@ const operationalQueue = [
 
 export default function DashboardHome() {
   return (
-    <div
-      className="mx-auto grid w-full max-w-7xl grid-cols-1 gap-6 px-4 py-6 md:px-8 xl:grid-cols-[minmax(0,1fr)_380px]"
-      id="conteudo"
-    >
-      <div className="space-y-6">
-        {/* Indicadores principais */}
-        <section
-          aria-label="Indicadores principais"
-          className="grid scroll-mt-24 grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
-          id="hoje"
-        >
-          <StatCard
-            icon={CalendarClock}
-            label="Sessões hoje"
-            value={todaySessions.length.toString()}
-            detail={`${confirmedSessions} confirmadas automaticamente`}
-          />
-          <StatCard
-            icon={UsersRound}
-            label="Pacientes ativos"
-            value={activePatients.length.toString()}
-            detail="Ficha, histórico e fila"
-          />
-          <StatCard
-            icon={WalletCards}
-            label="Recebíveis"
-            value={pendingPayments.toString()}
-            detail="Pix, recibos e NFS-e"
-          />
-          <StatCard
-            icon={FileCheck2}
-            label="Presença"
-            value={`${attendanceRate}%`}
-            detail="Lembretes reduzem faltas"
-          />
-        </section>
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-8" id="conteudo">
+      {/* Page intro */}
+      <div className="mb-6 flex flex-wrap items-end justify-between gap-3">
+        <div>
+          <p className="label">Boa tarde,</p>
+          <h2 className="mt-1 text-[20px] font-semibold tracking-tight text-[var(--ink)]">
+            Resumo da clínica
+          </h2>
+          <p className="mt-1 text-[13px] text-[var(--ink-4)]">
+            {todaySessions.length} sessões hoje · {activePatients.length} pacientes ativos · {openRecords} prontuários abertos
+          </p>
+        </div>
+      </div>
 
-        {/* Fila + Paciente em foco */}
-        <section className="grid grid-cols-1 gap-4 lg:grid-cols-[0.95fr_1.05fr]">
-          <Panel
-            eyebrow="Fila de trabalho"
-            icon={ClipboardCheck}
-            title="Prioridades administrativas"
-          >
-            <div className="space-y-3">
+      {/* KPIs */}
+      <section
+        aria-label="Indicadores principais"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 xl:grid-cols-4"
+      >
+        <StatCard
+          icon={CalendarClock}
+          label="Sessões hoje"
+          value={todaySessions.length.toString()}
+          trend={{ label: `${confirmedSessions} confirmadas`, tone: "positive" }}
+          detail="Agendamentos do dia"
+        />
+        <StatCard
+          icon={UsersRound}
+          label="Pacientes ativos"
+          value={activePatients.length.toString()}
+          detail="Em acompanhamento"
+        />
+        <StatCard
+          icon={WalletCards}
+          label="Recebíveis pendentes"
+          value={pendingPayments.toString()}
+          trend={{ label: "Pix em aberto", tone: "neutral" }}
+          detail="Aguardando pagamento"
+        />
+        <StatCard
+          icon={FileCheck2}
+          label="Presença"
+          value={`${attendanceRate}%`}
+          trend={{
+            label: attendanceRate >= 80 ? "Saudável" : "Atenção",
+            tone: attendanceRate >= 80 ? "positive" : "negative",
+          }}
+          detail="Lembretes reduzem faltas"
+        />
+      </section>
+
+      <div className="mt-6 grid grid-cols-1 gap-5 xl:grid-cols-[minmax(0,1fr)_380px]">
+        <div className="space-y-5">
+          {/* Queue + Focus patient */}
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <Panel
+              eyebrow="Fila de trabalho"
+              icon={ClipboardCheck}
+              title="Prioridades administrativas"
+              padded={false}
+            >
               {operationalQueue.map((item) => (
                 <QueueItem
+                  key={item.title}
                   detail={item.detail}
                   icon={item.icon}
-                  key={item.title}
                   meta={item.meta}
                   title={item.title}
                   tone={item.tone}
                 />
               ))}
-            </div>
-          </Panel>
+            </Panel>
 
-          <Panel
-            eyebrow="Paciente em foco"
-            icon={UserRound}
-            title={focusPatient.name}
-          >
-            <div className="grid grid-cols-1 gap-4 md:grid-cols-[1fr_0.9fr]">
-              <div>
-                <dl className="grid grid-cols-2 gap-3 text-sm">
-                  <Info label="WhatsApp" value={focusPatient.whatsapp} />
-                  <Info label="Modalidade" value={focusPatient.modality} />
-                  <Info
-                    label="Próxima sessão"
-                    value={
-                      focusPatient.nextSession
-                        ? formatDateTime(focusPatient.nextSession)
-                        : "Sem sessão"
-                    }
-                  />
-                  <Info
-                    label="Pendências"
-                    value={`${focusPatient.documentsPending ?? 0} documentos`}
-                  />
-                </dl>
+            <Panel
+              eyebrow="Paciente em foco"
+              icon={UserRound}
+              title={focusPatient.name}
+              description={`${focusPatient.modality} · ${focusPatient.whatsapp}`}
+            >
+              <dl className="grid grid-cols-2 gap-4">
+                <Info label="Próxima sessão"
+                  value={
+                    focusPatient.nextSession
+                      ? formatDateTime(focusPatient.nextSession)
+                      : "Sem sessão"
+                  }
+                />
+                <Info
+                  label="Pendências"
+                  value={`${focusPatient.documentsPending ?? 0} documentos`}
+                />
+                <Info
+                  label="Sessões"
+                  value={`${focusPatientSessions.length} registros`}
+                />
+                <Info
+                  label="Prontuário"
+                  value={focusPatientRecord ? "Iniciado" : "Sem prontuário"}
+                />
+              </dl>
 
-                <div className="mt-4 flex flex-wrap gap-2">
-                  {(focusPatient.alerts ?? []).map((alert) => (
-                    <Badge key={alert} variant="neutral">
-                      {alert}
-                    </Badge>
-                  ))}
-                </div>
+              <div className="mt-4 flex flex-wrap gap-1.5">
+                {(focusPatient.alerts ?? []).map((alert) => (
+                  <Badge key={alert} variant="neutral">
+                    {alert}
+                  </Badge>
+                ))}
               </div>
 
-              <div className="rounded-md bg-[var(--surface-muted)] p-3">
-                <p className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
-                  Linha clínica
-                </p>
-                <p className="mt-2 text-pretty text-sm leading-6 text-stone-700">
+              <div className="mt-4 rounded-md bg-[var(--surface-2)] p-3">
+                <p className="label">Resumo clínico</p>
+                <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--ink-2)]">
                   {focusPatientSessions.length} sessões registradas,{" "}
-                  {focusPatientRecord
-                    ? "prontuário iniciado"
-                    : "sem prontuário"}
+                  {focusPatientRecord ? "prontuário iniciado" : "sem prontuário"}
                   ,{" "}
-                  {
-                    notes.filter((note) => note.patientId === focusPatient.id)
-                      .length
-                  }{" "}
-                  anotação.
+                  {notes.filter((n) => n.patientId === focusPatient.id).length}{" "}
+                  anotação clínica.
                 </p>
               </div>
-            </div>
-          </Panel>
-        </section>
 
-        {/* Próximas sessões (preview) */}
-        <section>
+              <div className="mt-4 flex justify-end">
+                <Link
+                  href={`/pacientes/${focusPatient.id}`}
+                  className="btn btn-secondary btn-sm"
+                >
+                  Abrir ficha
+                </Link>
+              </div>
+            </Panel>
+          </div>
+
+          {/* Próximas sessões */}
           <Panel
             action={{ label: "Ver agenda", href: "/agenda" }}
             eyebrow="Agenda"
             icon={CalendarDays}
             title="Próximas sessões"
+            padded={false}
           >
-            <div className="overflow-hidden rounded-md border border-[var(--line)]">
-              <div className="grid grid-cols-[80px_1.2fr_0.9fr_0.85fr_0.95fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
-                <span>Hora</span>
-                <span>Paciente</span>
-                <span>Confirmação</span>
-                <span>Presença</span>
-                <span>Financeiro</span>
-              </div>
-              <div className="divide-y divide-[var(--line)]">
-                {sessions.slice(0, 4).map((session) => (
-                  <SessionRow key={session.id} session={session} />
-                ))}
-              </div>
+            <div className="grid grid-cols-[78px_1.3fr_0.85fr_0.8fr_0.85fr] border-b border-[var(--border)] bg-[var(--surface-2)] px-5 py-2.5 max-lg:hidden">
+              <span className="label-strong">Hora</span>
+              <span className="label-strong">Paciente</span>
+              <span className="label-strong">Confirmação</span>
+              <span className="label-strong">Presença</span>
+              <span className="label-strong">Financeiro</span>
+            </div>
+            <div className="divide-y divide-[var(--border)]">
+              {sessions.slice(0, 4).map((session) => (
+                <SessionRow key={session.id} session={session} />
+              ))}
             </div>
           </Panel>
-        </section>
-      </div>
+        </div>
 
-      {/* Coluna lateral */}
-      <aside className="space-y-6">
-        <Panel eyebrow="WhatsApp IA" icon={Bot} title="Recepção inteligente">
-          <div className="grid grid-cols-1 gap-3">
-            <WorkflowStep
-              icon={Bot}
-              title="Triagem SDR"
-              detail="Cobre modalidade, idade e alinhamento financeiro antes de sugerir slots."
-            />
-            <WorkflowStep
-              icon={CalendarDays}
-              title="Remarcar ou cancelar"
-              detail="Recepcionista consulta agenda, libera horários e aciona fila de espera."
-            />
-            <WorkflowStep
-              icon={Bot}
-              title="Handoff protegido"
-              detail="Perguntas clínicas viram notificação, sem resposta diagnóstica por IA."
-            />
-          </div>
+        {/* Sidebar column */}
+        <aside className="space-y-5">
+          <Panel eyebrow="WhatsApp IA" icon={Bot} title="Recepção inteligente">
+            <div className="space-y-0">
+              <WorkflowStep
+                step={1}
+                icon={Bot}
+                title="Triagem SDR"
+                detail="Cobre modalidade, idade e alinhamento financeiro antes de sugerir slots."
+              />
+              <WorkflowStep
+                step={2}
+                icon={CalendarDays}
+                title="Remarcar ou cancelar"
+                detail="Recepcionista consulta agenda, libera horários e aciona fila de espera."
+              />
+              <WorkflowStep
+                step={3}
+                icon={Bot}
+                title="Handoff protegido"
+                detail="Perguntas clínicas viram notificação, sem resposta diagnóstica por IA."
+              />
+            </div>
+            <div className="mt-4 rounded-md border border-[#cddfff] bg-[var(--blue-soft)] p-3">
+              <p className="text-[12px] font-semibold text-[var(--blue-text)]">
+                Mensagens aprovadas
+              </p>
+              <p className="mt-0.5 text-[12.5px] leading-snug text-[var(--blue-text)]">
+                {messageTemplates.filter((t) => t.approved).length} templates ativos
+                — confirmação, documentos, reagendamento e cobrança.
+              </p>
+            </div>
+          </Panel>
 
-          <div className="mt-5 rounded-md bg-teal-50 p-3 shadow-[0_0_0_1px_rgba(20,184,166,0.22)]">
-            <p className="text-sm font-semibold text-teal-900">
-              Mensagens aprovadas
-            </p>
-            <p className="mt-2 text-pretty text-sm leading-6 text-teal-800">
-              {messageTemplates.filter((template) => template.approved).length} templates ativos para confirmação, documentos, reagendamento e cobrança.
-            </p>
-          </div>
-        </Panel>
-
-        <Panel eyebrow="Automação" icon={FileCheck2} title="Fluxos ativos">
-          <div className="space-y-3">
-            {automationRules.map((rule) => (
-              <div
-                className="rounded-md border border-[var(--line)] p-3"
-                key={rule.id}
-              >
-                <div className="flex items-start justify-between gap-3">
-                  <p className="font-semibold text-stone-950">{rule.title}</p>
-                  <Badge variant={rule.status === "active" ? "success" : "neutral"}>
-                    {rule.status === "active" ? "Ativo" : "Pausado"}
-                  </Badge>
-                </div>
-                <p className="mt-2 text-sm leading-6 text-stone-600">
-                  {rule.action}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel eyebrow="Alertas" icon={Bell} title="Notificações">
-          <div className="divide-y divide-[var(--line)]">
-            {notifications.map((notification) => (
-              <div
-                className="py-3 first:pt-0 last:pb-0"
-                key={notification.id}
-              >
-                <p className="font-medium text-stone-950">
-                  {notification.title}
-                </p>
-                <p className="mt-1 text-pretty text-sm leading-6 text-stone-600">
-                  {notification.detail}
-                </p>
-                <p className="mt-2 text-xs font-medium text-stone-500">
-                  {formatDateTime(notification.createdAt)}
-                </p>
-              </div>
-            ))}
-          </div>
-        </Panel>
-
-        <Panel eyebrow="Disponibilidade" icon={Clock3} title="Slots livres">
-          <div className="space-y-3">
-            {availableSlots.map((slot) => (
-              <div
-                className="surface-card flex items-center justify-between gap-3 rounded-[10px] bg-white p-3"
-                key={slot.id}
-              >
-                <div>
-                  <p className="font-semibold text-stone-950">
-                    {formatDateTime(slot.startsAt)}
-                  </p>
-                  <p className="mt-1 text-sm text-stone-500">
-                    {slot.modality} ·{" "}
-                    <span className="metric-number">
-                      {formatTime(slot.startsAt)}-{formatTime(slot.endsAt)}
-                    </span>
+          <Panel eyebrow="Automação" icon={FileCheck2} title="Fluxos ativos" padded={false}>
+            <div className="divide-y divide-[var(--border)]">
+              {automationRules.map((rule) => (
+                <div key={rule.id} className="px-5 py-3.5">
+                  <div className="flex items-start justify-between gap-3">
+                    <p className="h-card text-[14px]">{rule.title}</p>
+                    <Badge variant={rule.status === "active" ? "success" : "neutral"}>
+                      {rule.status === "active" ? "Ativo" : "Pausado"}
+                    </Badge>
+                  </div>
+                  <p className="mt-1 text-[12.5px] leading-snug text-[var(--ink-3)]">
+                    {rule.action}
                   </p>
                 </div>
-              </div>
-            ))}
-          </div>
-        </Panel>
-      </aside>
-    </div>
-  );
-}
+              ))}
+            </div>
+          </Panel>
 
-function WorkflowStep({
-  detail,
-  icon: Icon,
-  title,
-}: {
-  detail: string;
-  icon: React.ComponentType<{ size?: number; strokeWidth?: number }>;
-  title: string;
-}) {
-  return (
-    <div className="flex gap-3">
-      <div className="mt-1 flex size-8 shrink-0 items-center justify-center rounded-md bg-teal-50 text-[var(--brand)]">
-        <Icon aria-hidden="true" size={17} strokeWidth={2} />
-      </div>
-      <div>
-        <p className="font-semibold text-stone-950">{title}</p>
-        <p className="mt-1 text-pretty text-sm leading-6 text-stone-600">
-          {detail}
-        </p>
+          <Panel eyebrow="Alertas" icon={Bell} title="Notificações" padded={false}>
+            <div className="divide-y divide-[var(--border)]">
+              {notifications.map((notification) => (
+                <div key={notification.id} className="px-5 py-3.5">
+                  <p className="h-card text-[14px]">{notification.title}</p>
+                  <p className="mt-1 text-[12.5px] leading-snug text-[var(--ink-3)]">
+                    {notification.detail}
+                  </p>
+                  <p className="mt-2 text-[11px] text-[var(--ink-5)]">
+                    {formatDateTime(notification.createdAt)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+
+          <Panel eyebrow="Disponibilidade" icon={Clock3} title="Slots livres" padded={false}>
+            <div className="divide-y divide-[var(--border)]">
+              {availableSlots.map((slot) => (
+                <div
+                  key={slot.id}
+                  className="flex items-center justify-between gap-3 px-5 py-3"
+                >
+                  <div>
+                    <p className="text-[13.5px] font-semibold text-[var(--ink)]">
+                      {formatDateTime(slot.startsAt)}
+                    </p>
+                    <p className="mt-0.5 text-[11.5px] text-[var(--ink-4)]">
+                      {slot.modality === "online" ? "Online" : "Presencial"}
+                    </p>
+                  </div>
+                  <p className="metric-number text-[14px] font-semibold text-[var(--blue)]">
+                    {formatTime(slot.startsAt)}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </Panel>
+        </aside>
       </div>
     </div>
   );
@@ -382,10 +368,8 @@ function WorkflowStep({
 function Info({ label, value }: { label: string; value: string }) {
   return (
     <div className="min-w-0">
-      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
-        {label}
-      </dt>
-      <dd className="mt-1 break-words text-pretty font-medium text-stone-800">
+      <dt className="label">{label}</dt>
+      <dd className="mt-0.5 break-words text-[13.5px] font-medium text-[var(--ink-2)]">
         {value}
       </dd>
     </div>

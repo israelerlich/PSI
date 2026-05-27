@@ -5,7 +5,6 @@ import {
   FileCheck2,
   Paperclip,
   ReceiptText,
-  UserRound,
 } from "lucide-react";
 import {
   billingEntries,
@@ -20,6 +19,7 @@ import {
 import { Badge } from "../../_components/badge";
 import { SessionRow } from "../../_components/session-row";
 import { RecordCard } from "../../_components/record-card";
+import { Panel } from "../../_components/panel";
 
 export default async function PacienteDetalhePage({
   params,
@@ -33,12 +33,12 @@ export default async function PacienteDetalhePage({
   const patientSessions = sessions.filter((s) => s.patientId === id);
   const patientRecords = records.filter((r) => r.patientId === id);
   const patientNotes = notes.filter((n) => n.patientId === id);
-  const patientBilling = billingEntries.filter((entry) => entry.patientId === id);
-  const patientConsents = consents.filter((consent) => consent.patientId === id);
+  const patientBilling = billingEntries.filter((e) => e.patientId === id);
+  const patientConsents = consents.filter((c) => c.patientId === id);
   const patientAttachments = clinicalAttachments.filter(
-    (attachment) => attachment.patientId === id,
+    (a) => a.patientId === id,
   );
-  const timeline = patientTimeline.filter((item) => item.patientId === id);
+  const timeline = patientTimeline.filter((t) => t.patientId === id);
 
   const formatDateTime = (value: string) =>
     new Intl.DateTimeFormat("pt-BR", {
@@ -56,228 +56,244 @@ export default async function PacienteDetalhePage({
       style: "currency",
     }).format(value / 100);
 
+  const initials = patient.name
+    .split(" ")
+    .map((p) => p[0])
+    .filter(Boolean)
+    .slice(0, 2)
+    .join("");
+
   return (
-    <div className="mx-auto w-full max-w-7xl px-4 py-6 md:px-8">
+    <div className="mx-auto w-full max-w-[1400px] px-4 py-6 md:px-8 md:py-8">
       <Link
         href="/pacientes"
-        className="mb-4 inline-flex min-h-10 items-center gap-2 text-sm font-medium text-stone-600 transition-[color] duration-150 ease-out hover:text-[var(--brand)]"
+        className="btn btn-ghost btn-sm -ml-2 mb-4 inline-flex"
       >
-        <ArrowLeft size={16} />
+        <ArrowLeft size={14} strokeWidth={1.8} />
         Voltar para pacientes
       </Link>
 
-      <div className="grid grid-cols-1 gap-6 xl:grid-cols-[1fr_2fr]">
-        {/* Dados do paciente */}
-        <section className="surface-card rounded-[10px] bg-white p-5">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="flex size-10 items-center justify-center rounded-full bg-[var(--surface-muted)] text-[var(--brand)]">
-              <UserRound aria-hidden="true" size={20} strokeWidth={2} />
+      {/* Patient header */}
+      <header className="card mb-5 p-6">
+        <div className="flex flex-wrap items-start justify-between gap-5">
+          <div className="flex items-start gap-4">
+            <div className="flex size-14 items-center justify-center rounded-full bg-[var(--blue-soft)] text-[17px] font-semibold text-[var(--blue-text)]">
+              {initials}
             </div>
             <div>
-              <h1 className="text-balance text-xl font-semibold text-stone-950">
-                {patient.name}
-              </h1>
-              <p className="text-sm text-stone-500">{patient.whatsapp}</p>
+              <h1 className="h-page text-[22px]">{patient.name}</h1>
+              <p className="mt-1 text-[13px] text-[var(--ink-4)]">
+                {patient.whatsapp}
+                {patient.email ? <> · {patient.email}</> : null}
+              </p>
+              <div className="mt-3 flex flex-wrap gap-1.5">
+                <Badge
+                  variant={
+                    patient.financialStatus === "PAGO" ? "success" : "warning"
+                  }
+                >
+                  {patient.financialStatus === "PAGO"
+                    ? "Em dia"
+                    : "Pagamento pendente"}
+                </Badge>
+                {patient.consentStatus ? (
+                  <Badge
+                    variant={
+                      patient.consentStatus === "complete"
+                        ? "success"
+                        : patient.consentStatus === "expired"
+                          ? "danger"
+                          : "warning"
+                    }
+                  >
+                    Consentimento {patient.consentStatus}
+                  </Badge>
+                ) : null}
+                <Badge variant="neutral">
+                  {patient.modality === "online" ? "Online" : "Presencial"}
+                </Badge>
+              </div>
             </div>
           </div>
+          <button type="button" className="btn btn-secondary">
+            Editar ficha
+          </button>
+        </div>
+      </header>
 
-          <dl className="space-y-3 text-sm">
-            {patient.email ? (
-              <Info label="Email" value={patient.email} />
-            ) : null}
-            {patient.birthDate ? (
-              <Info label="Nascimento" value={patient.birthDate} />
-            ) : null}
-            <Info label="Modalidade" value={patient.modality} />
-            <Info
-              label="Financeiro"
-              value={patient.financialStatus}
-            />
-            <Info
-              label="Próxima sessão"
-              value={
-                patient.nextSession
-                  ? formatDateTime(patient.nextSession)
-                  : "Sem sessão"
-              }
-            />
-            {patient.generalNotes ? (
-              <Info label="Observações" value={patient.generalNotes} />
-            ) : null}
-            <Info
-              label="Anexos"
-              value={`${patientAttachments.length} arquivos protegidos`}
-            />
-            <Info
-              label="Consentimentos"
-              value={`${patientConsents.filter((consent) => consent.status === "signed").length}/${patientConsents.length} assinados`}
-            />
-          </dl>
+      <div className="grid grid-cols-1 gap-5 xl:grid-cols-[340px_1fr]">
+        <aside className="space-y-5">
+          <Panel eyebrow="Dados" title="Informações do paciente">
+            <dl className="space-y-0 divide-y divide-[var(--border)]">
+              {patient.birthDate ? (
+                <DataLine label="Nascimento" value={patient.birthDate} />
+              ) : null}
+              <DataLine label="Modalidade" value={patient.modality} />
+              <DataLine
+                label="Próxima sessão"
+                value={
+                  patient.nextSession
+                    ? formatDateTime(patient.nextSession)
+                    : "Sem sessão"
+                }
+              />
+              {patient.generalNotes ? (
+                <DataLine label="Observações" value={patient.generalNotes} />
+              ) : null}
+              <DataLine
+                label="Anexos"
+                value={`${patientAttachments.length} arquivos`}
+              />
+              <DataLine
+                label="Consentimentos"
+                value={`${patientConsents.filter((c) => c.status === "signed").length}/${patientConsents.length} assinados`}
+              />
+            </dl>
+          </Panel>
 
           {(patient.alerts ?? []).length > 0 ? (
-            <div className="mt-4 flex flex-wrap gap-2">
-              {patient.alerts!.map((alert) => (
-                <Badge key={alert} variant="warning">
-                  {alert}
-                </Badge>
-              ))}
-            </div>
+            <Panel eyebrow="Atenção" title="Alertas">
+              <div className="flex flex-wrap gap-1.5">
+                {patient.alerts!.map((alert) => (
+                  <Badge key={alert} variant="warning">
+                    {alert}
+                  </Badge>
+                ))}
+              </div>
+            </Panel>
           ) : null}
-        </section>
+        </aside>
 
-        {/* Sessões, prontuários e anotações */}
-        <div className="space-y-6">
-          {/* Sessões */}
-          <section className="surface-card rounded-[10px] bg-white p-5">
-            <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
-              Sessões ({patientSessions.length})
-            </h2>
+        <div className="space-y-5">
+          <Panel
+            eyebrow="Sessões"
+            title={`Histórico (${patientSessions.length})`}
+            padded={false}
+          >
             {patientSessions.length === 0 ? (
-              <p className="text-sm text-stone-500">Nenhuma sessão registrada.</p>
+              <p className="px-5 py-6 text-[13px] text-[var(--ink-4)]">
+                Nenhuma sessão registrada.
+              </p>
             ) : (
-              <div className="overflow-hidden rounded-md border border-[var(--line)]">
-                <div className="grid grid-cols-[80px_1.2fr_0.9fr_0.85fr_0.95fr] bg-[var(--surface-muted)] px-4 py-3 text-xs font-semibold uppercase tracking-[0.12em] text-stone-600 max-lg:hidden">
-                  <span>Hora</span>
-                  <span>Paciente</span>
-                  <span>Confirmação</span>
-                  <span>Presença</span>
-                  <span>Financeiro</span>
+              <>
+                <div className="grid grid-cols-[78px_1.3fr_0.85fr_0.8fr_0.85fr] border-b border-[var(--border)] bg-[var(--surface-2)] px-5 py-2.5 max-lg:hidden">
+                  <span className="label-strong">Hora</span>
+                  <span className="label-strong">Paciente</span>
+                  <span className="label-strong">Confirmação</span>
+                  <span className="label-strong">Presença</span>
+                  <span className="label-strong">Financeiro</span>
                 </div>
-                <div className="divide-y divide-[var(--line)]">
+                <div className="divide-y divide-[var(--border)]">
                   {patientSessions.map((session) => (
                     <SessionRow key={session.id} session={session} />
                   ))}
                 </div>
-              </div>
+              </>
             )}
-          </section>
+          </Panel>
 
-          {/* Prontuários */}
-          <section className="surface-card rounded-[10px] bg-white p-5">
-            <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
-              Prontuários ({patientRecords.length})
-            </h2>
-            {patientRecords.length === 0 ? (
-              <p className="text-sm text-stone-500">Nenhum prontuário registrado.</p>
-            ) : (
-              <div className="space-y-4">
-                {patientRecords.map((record) => (
-                  <RecordCard key={record.id} record={record} />
-                ))}
-              </div>
-            )}
-          </section>
-
-          <section className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-            <div className="mb-4 flex items-center gap-2">
-              <FileCheck2
-                aria-hidden="true"
-                className="text-[var(--brand)]"
-                size={18}
-              />
-              <h2 className="text-lg font-semibold text-stone-950">
-                Contexto clínico
-              </h2>
+          {patientRecords.length > 0 ? (
+            <div className="space-y-3">
+              <h3 className="h-section">
+                Prontuários ({patientRecords.length})
+              </h3>
+              {patientRecords.map((record) => (
+                <RecordCard key={record.id} record={record} />
+              ))}
             </div>
+          ) : null}
+
+          <Panel
+            eyebrow="Contexto"
+            icon={FileCheck2}
+            title="Linha do tempo clínica"
+          >
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
               {timeline.map((item) => (
                 <div
-                  className="rounded-md bg-[var(--surface-muted)] p-3"
                   key={item.id}
+                  className="rounded-md bg-[var(--surface-2)] p-3"
                 >
-                  <p className="text-sm font-semibold text-stone-950">
+                  <p className="text-[13.5px] font-semibold text-[var(--ink)]">
                     {item.title}
                   </p>
-                  <p className="mt-1 text-sm leading-6 text-stone-600">
+                  <p className="mt-1 text-[12.5px] leading-relaxed text-[var(--ink-3)]">
                     {item.detail}
                   </p>
-                  <p className="mt-2 text-xs font-medium text-stone-500">
+                  <p className="mt-2 text-[11px] text-[var(--ink-5)]">
                     {formatDateTime(item.date)}
                   </p>
                 </div>
               ))}
             </div>
-          </section>
+          </Panel>
 
-          <section className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-            <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <Paperclip
-                  aria-hidden="true"
-                  className="text-[var(--brand)]"
-                  size={18}
-                />
-                <h2 className="text-lg font-semibold text-stone-950">
-                  Anexos e consentimentos
-                </h2>
-              </div>
-              <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <Panel
+              eyebrow="Documentação"
+              icon={Paperclip}
+              title="Anexos e consentimentos"
+            >
+              <div className="space-y-0 divide-y divide-[var(--border)]">
                 {patientAttachments.map((attachment) => (
-                  <Info
+                  <DataLine
                     key={attachment.id}
                     label={attachment.kind}
                     value={attachment.title}
                   />
                 ))}
                 {patientConsents.map((consent) => (
-                  <Info
+                  <DataLine
                     key={consent.id}
                     label={consent.status === "signed" ? "assinado" : "pendente"}
                     value={consent.title}
                   />
                 ))}
               </div>
-            </div>
+            </Panel>
 
-            <div className="rounded-lg border border-[var(--line)] bg-white p-5 shadow-sm">
-              <div className="mb-4 flex items-center gap-2">
-                <ReceiptText
-                  aria-hidden="true"
-                  className="text-[var(--brand)]"
-                  size={18}
-                />
-                <h2 className="text-lg font-semibold text-stone-950">
-                  Cobranças e recibos
-                </h2>
-              </div>
-              <div className="space-y-3">
+            <Panel
+              eyebrow="Financeiro"
+              icon={ReceiptText}
+              title="Cobranças e recibos"
+            >
+              <div className="space-y-2">
                 {patientBilling.map((entry) => (
                   <div
-                    className="rounded-md border border-[var(--line)] p-3"
                     key={entry.id}
+                    className="rounded-md border border-[var(--border)] p-3"
                   >
-                    <p className="font-semibold text-stone-950">
+                    <p className="metric-number text-[15px] font-semibold text-[var(--ink)]">
                       {formatCurrency(entry.amountCents)}
                     </p>
-                    <p className="mt-1 text-sm text-stone-500">
-                      {entry.serviceType} · {entry.paymentStatus} · {entry.invoiceStatus}
+                    <p className="mt-0.5 text-[12.5px] text-[var(--ink-4)]">
+                      {entry.serviceType} · {entry.paymentStatus} ·{" "}
+                      {entry.invoiceStatus}
                     </p>
                   </div>
                 ))}
               </div>
-            </div>
-          </section>
+            </Panel>
+          </div>
 
-          {/* Anotações */}
           {patientNotes.length > 0 ? (
-            <section className="surface-card rounded-[10px] bg-white p-5">
-              <h2 className="mb-4 text-balance text-lg font-semibold text-stone-950">
-                Anotações ({patientNotes.length})
-              </h2>
+            <Panel eyebrow="Diário" title={`Anotações (${patientNotes.length})`}>
               <div className="space-y-3">
                 {patientNotes.map((note) => (
                   <div
                     key={note.id}
-                    className="rounded-md bg-[var(--surface-muted)] p-3"
+                    className="rounded-md bg-[var(--surface-2)] p-3"
                   >
-                    <p className="text-sm text-stone-700">{note.body}</p>
-                    <p className="mt-2 text-xs text-stone-500">
+                    <p className="text-[13.5px] leading-relaxed text-[var(--ink-2)]">
+                      {note.body}
+                    </p>
+                    <p className="mt-2 text-[11px] text-[var(--ink-5)]">
                       {formatDateTime(note.createdAt)}
                     </p>
                   </div>
                 ))}
               </div>
-            </section>
+            </Panel>
           ) : null}
         </div>
       </div>
@@ -285,13 +301,11 @@ export default async function PacienteDetalhePage({
   );
 }
 
-function Info({ label, value }: { label: string; value: string }) {
+function DataLine({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <dt className="text-xs font-semibold uppercase tracking-[0.12em] text-stone-500">
-        {label}
-      </dt>
-      <dd className="mt-1 text-pretty font-medium text-stone-800">{value}</dd>
+    <div className="grid grid-cols-[120px_1fr] items-baseline gap-3 py-2.5">
+      <dt className="label">{label}</dt>
+      <dd className="text-[13.5px] font-medium text-[var(--ink-2)]">{value}</dd>
     </div>
   );
 }

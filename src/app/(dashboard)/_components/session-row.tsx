@@ -18,7 +18,7 @@ const confirmationVariant = {
   pending: "warning" as const,
   confirmed: "success" as const,
   reschedule_requested: "warning" as const,
-  rescheduled: "brand" as const,
+  rescheduled: "info" as const,
   manual_review: "danger" as const,
 };
 
@@ -62,20 +62,28 @@ export function SessionRow({ session }: { session: TherapySession }) {
     }).format(new Date(value));
 
   return (
-    <article className="grid grid-cols-1 gap-3 px-4 py-4 lg:grid-cols-[80px_1.2fr_0.85fr_0.8fr_0.8fr] lg:items-center">
-      <div className="metric-number font-semibold text-stone-950">
-        {formatTime(session.startsAt)}
+    <article className="row-hover grid grid-cols-1 gap-3 px-5 py-4 lg:grid-cols-[78px_1.3fr_0.85fr_0.8fr_0.85fr] lg:items-center">
+      <div>
+        <p className="metric-number text-[15px] font-semibold text-[var(--ink)]">
+          {formatTime(session.startsAt)}
+        </p>
+        <p className="mt-0.5 text-[11.5px] text-[var(--ink-5)]">
+          {session.modality === "online" ? "Online" : "Presencial"}
+        </p>
       </div>
+
       <div className="min-w-0">
-        <p className="font-semibold text-stone-950">{session.patientName}</p>
-        <p className="mt-1 text-pretty text-sm text-stone-500">
-          {session.serviceType} · {session.modality} · {session.location}
+        <p className="text-[14px] font-semibold text-[var(--ink)]">
+          {session.patientName}
         </p>
-        <p className="mt-1 text-xs font-medium text-stone-500">
-          Lembrete: {session.reminderStatus === "sent" ? "enviado" : "agendado"} ·
-          Prontuário: {documentationLabel}
+        <p className="mt-0.5 text-[12.5px] text-[var(--ink-4)]">
+          {session.serviceType} · {session.location}
         </p>
-        <div className="mt-3 flex flex-wrap gap-2 lg:hidden">
+        <p className="mt-1 text-[11.5px] text-[var(--ink-5)]">
+          Lembrete {session.reminderStatus === "sent" ? "enviado" : "agendado"} ·
+          Prontuário {documentationLabel}
+        </p>
+        <div className="mt-2 flex flex-wrap gap-1.5 lg:hidden">
           <Badge variant={confirmationVariant[confirmationStatus]}>
             {confirmationLabel[confirmationStatus]}
           </Badge>
@@ -87,6 +95,7 @@ export function SessionRow({ session }: { session: TherapySession }) {
           </Badge>
         </div>
       </div>
+
       <div className="max-lg:hidden">
         <Badge variant={confirmationVariant[confirmationStatus]}>
           {confirmationLabel[confirmationStatus]}

@@ -13,7 +13,7 @@ export default function DashboardLayout({
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
 
   return (
-    <div className="flex min-h-screen">
+    <div className="flex min-h-screen bg-[var(--bg)]">
       <Sidebar />
       <MobileNav
         open={mobileNavOpen}

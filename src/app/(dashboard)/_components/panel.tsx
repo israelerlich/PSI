@@ -1,4 +1,5 @@
 import { ChevronRight, type LucideIcon } from "lucide-react";
+import Link from "next/link";
 
 export function Panel({
   action,
@@ -6,38 +7,53 @@ export function Panel({
   eyebrow,
   icon: Icon,
   title,
+  description,
+  padded = true,
 }: {
   action?: { label: string; href?: string };
   children: React.ReactNode;
-  eyebrow: string;
-  icon: LucideIcon;
+  eyebrow?: string;
+  icon?: LucideIcon;
   title: string;
+  description?: string;
+  padded?: boolean;
 }) {
   return (
-    <section className="surface-card rounded-[10px] bg-white p-5">
-      <div className="mb-5 flex flex-wrap items-center justify-between gap-3">
-        <div className="flex min-w-0 flex-1 items-center gap-3">
-          <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-[var(--surface-muted)] text-[var(--brand)]">
-            <Icon aria-hidden="true" size={18} strokeWidth={2} />
-          </div>
-          <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.14em] text-stone-500">
-              {eyebrow}
-            </p>
-            <h2 className="text-lg font-semibold text-stone-950">{title}</h2>
+    <section className="card overflow-hidden">
+      <header className="flex flex-wrap items-start justify-between gap-3 border-b border-[var(--border)] px-5 py-4">
+        <div className="flex min-w-0 items-start gap-3">
+          {Icon ? (
+            <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-[var(--blue-soft)] text-[var(--blue)]">
+              <Icon aria-hidden="true" size={16} strokeWidth={1.8} />
+            </div>
+          ) : null}
+          <div className="min-w-0">
+            {eyebrow ? (
+              <p className="text-[11px] font-medium uppercase tracking-wider text-[var(--ink-5)]">
+                {eyebrow}
+              </p>
+            ) : null}
+            <h2 className="h-section mt-0.5 leading-tight">{title}</h2>
+            {description ? (
+              <p className="mt-1 text-[12.5px] text-[var(--ink-4)]">{description}</p>
+            ) : null}
           </div>
         </div>
         {action ? (
-          <a
-            className="tactile inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-md bg-white pl-3.5 pr-4 text-sm font-semibold text-stone-600 shadow-[var(--shadow-border)] hover:bg-[var(--surface-muted)] hover:shadow-[var(--shadow-border-hover)] max-sm:w-full"
-            href={action.href ?? "#"}
-          >
-            <ChevronRight aria-hidden="true" size={16} strokeWidth={2} />
-            {action.label}
-          </a>
+          <PanelAction action={action} />
         ) : null}
-      </div>
-      {children}
+      </header>
+      <div className={padded ? "p-5" : ""}>{children}</div>
     </section>
   );
+}
+
+function PanelAction({ action }: { action: { label: string; href?: string } }) {
+  const content = (
+    <span className="btn btn-ghost btn-sm">
+      {action.label}
+      <ChevronRight aria-hidden="true" size={14} strokeWidth={1.8} />
+    </span>
+  );
+  return action.href ? <Link href={action.href}>{content}</Link> : content;
 }
