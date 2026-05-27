@@ -3,13 +3,19 @@ import { notFound } from "next/navigation";
 import { ArrowLeft, MessageCircle } from "lucide-react";
 import { requireUser } from "@/lib/auth-helpers";
 import { getPatient } from "@/server/queries/patient";
+import { listSessionsForPatient } from "@/server/queries/session";
+import { listRecordsForPatient } from "@/server/queries/record";
+import { billingForPatient } from "@/server/queries/billing";
+import { prisma } from "@/lib/db";
 import { Badge } from "../../_components/badge";
-import { Panel } from "../../_components/panel";
-import { formatDate, formatDateTime } from "@/lib/format/date";
 import {
   formatWhatsappForDisplay,
   whatsappToWaMeLink,
 } from "@/lib/format/phone";
+import { SessionsSection } from "./_components/SessionsSection";
+import { RecordsSection } from "./_components/RecordsSection";
+import { NotesSection } from "./_components/NotesSection";
+import { BillingSection } from "./_components/BillingSection";
 
 export const dynamic = "force-dynamic";
 
@@ -22,6 +28,16 @@ export default async function PacienteDetalhePage({
   const { id } = await params;
   const patient = await getPatient(user.id, id);
   if (!patient) notFound();
+
+  const [sessions, records, notes, billing] = await Promise.all([
+    listSessionsForPatient(user.id, id),
+    listRecordsForPatient(user.id, id),
+    prisma.note.findMany({
+      where: { userId: user.id, patientId: id },
+      orderBy: { createdAt: "desc" },
+    }),
+    billingForPatient(user.id, id),
+  ]);
 
   const initials = patient.name
     .split(" ")
@@ -36,8 +52,7 @@ export default async function PacienteDetalhePage({
         href="/pacientes"
         className="btn btn-ghost btn-sm -ml-2 mb-4 inline-flex"
       >
-        <ArrowLeft size={14} strokeWidth={1.8} />
-        Voltar para pacientes
+        <ArrowLeft size={14} strokeWidth={1.8} /> Voltar
       </Link>
 
       <header className="card mb-5 p-6">
@@ -49,19 +64,10 @@ export default async function PacienteDetalhePage({
             <div>
               <h1 className="h-page text-[22px]">{patient.name}</h1>
               <p className="mt-1 text-[13px] text-[var(--ink-4)]">
-                {patient.whatsapp ? (
-                  <a
-                    href={whatsappToWaMeLink(patient.whatsapp)}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-[var(--blue)] hover:underline"
-                  >
-                    {formatWhatsappForDisplay(patient.whatsapp)}
-                  </a>
-                ) : (
-                  "Sem WhatsApp"
-                )}
-                {patient.email ? <> · {patient.email}</> : null}
+                {patient.whatsapp
+                  ? formatWhatsappForDisplay(patient.whatsapp)
+                  : "Sem WhatsApp"}
+                {patient.email ? ` · ${patient.email}` : ""}
               </p>
               <div className="mt-3 flex flex-wrap gap-1.5">
                 <Badge
@@ -96,35 +102,38 @@ export default async function PacienteDetalhePage({
         </div>
       </header>
 
-      <Panel eyebrow="Dados" title="Informações do paciente">
-        <dl className="divide-y divide-[var(--border)]">
-          {patient.birthDate ? (
-            <DataLine label="Nascimento" value={formatDate(patient.birthDate)} />
-          ) : null}
-          <DataLine label="Modalidade" value={patient.modality} />
-          <DataLine
-            label="Criado em"
-            value={formatDateTime(patient.createdAt)}
-          />
-          {patient.generalNotes ? (
-            <DataLine label="Observações" value={patient.generalNotes} />
-          ) : null}
-        </dl>
-      </Panel>
+      <nav
+        className="mb-5 flex flex-wrap gap-2 text-[13px]"
+        aria-label="Atalhos"
+      >
+        <a href="#sessoes" className="btn btn-ghost btn-sm">
+          Sessões ({sessions.length})
+        </a>
+        <a href="#prontuarios" className="btn btn-ghost btn-sm">
+          Prontuários ({records.length})
+        </a>
+        <a href="#anotacoes" className="btn btn-ghost btn-sm">
+          Anotações ({notes.length})
+        </a>
+        <a href="#financeiro" className="btn btn-ghost btn-sm">
+          Financeiro ({billing.length})
+        </a>
+      </nav>
 
-      <p className="mt-6 text-[13px] text-[var(--ink-4)]">
-        Histórico de sessões, prontuários, anotações e financeiro deste paciente
-        aparecem aqui depois das próximas fases.
-      </p>
-    </div>
-  );
-}
-
-function DataLine({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="grid grid-cols-[120px_1fr] items-baseline gap-3 py-2.5">
-      <dt className="label">{label}</dt>
-      <dd className="text-[13.5px] font-medium text-[var(--ink-2)]">{value}</dd>
+      <div className="space-y-5">
+        <section id="sessoes" className="scroll-mt-20">
+          <SessionsSection sessions={sessions} />
+        </section>
+        <section id="prontuarios" className="scroll-mt-20">
+          <RecordsSection records={records} />
+        </section>
+        <section id="anotacoes" className="scroll-mt-20">
+          <NotesSection notes={notes} patientId={patient.id} />
+        </section>
+        <section id="financeiro" className="scroll-mt-20">
+          <BillingSection billing={billing} />
+        </section>
+      </div>
     </div>
   );
 }
