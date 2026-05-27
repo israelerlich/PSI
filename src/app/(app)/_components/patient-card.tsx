@@ -1,12 +1,8 @@
-import type { Patient } from "@/lib/domain";
+import type { Patient } from "@prisma/client";
 import { Badge } from "./badge";
 import Link from "next/link";
 import { ArrowUpRight } from "lucide-react";
-
-const paymentVariant = {
-  PAGO: "success" as const,
-  PENDENTE: "warning" as const,
-};
+import { formatWhatsappForDisplay } from "@/lib/format/phone";
 
 const consentLabel = {
   complete: "Consentimentos ok",
@@ -21,16 +17,6 @@ const consentVariant = {
 };
 
 export function PatientCard({ patient }: { patient: Patient }) {
-  const formatDateTime = (value: string) =>
-    new Intl.DateTimeFormat("pt-BR", {
-      weekday: "short",
-      day: "2-digit",
-      month: "2-digit",
-      hour: "2-digit",
-      minute: "2-digit",
-      timeZone: "America/Sao_Paulo",
-    }).format(new Date(value));
-
   const initials = patient.name
     .split(" ")
     .map((p) => p[0])
@@ -54,7 +40,9 @@ export function PatientCard({ patient }: { patient: Patient }) {
                 {patient.name}
               </p>
               <p className="mt-0.5 text-[12.5px] text-[var(--ink-4)]">
-                {patient.whatsapp}
+                {patient.whatsapp
+                  ? formatWhatsappForDisplay(patient.whatsapp)
+                  : patient.email ?? "Sem contato"}
               </p>
             </div>
             <ArrowUpRight
@@ -66,51 +54,21 @@ export function PatientCard({ patient }: { patient: Patient }) {
           </div>
 
           <div className="mt-3 flex flex-wrap gap-1.5">
-            <Badge variant={paymentVariant[patient.financialStatus]}>
-              {patient.financialStatus === "PAGO" ? "Em dia" : "Pendência"}
+            <Badge variant={patient.modality === "online" ? "info" : "neutral"}>
+              {patient.modality === "online" ? "Online" : "Presencial"}
             </Badge>
-            {patient.consentStatus ? (
-              <Badge variant={consentVariant[patient.consentStatus]}>
-                {consentLabel[patient.consentStatus]}
-              </Badge>
-            ) : null}
-            <Badge variant="neutral">{patient.attachmentCount ?? 0} anexos</Badge>
+            <Badge variant={consentVariant[patient.consentStatus]}>
+              {consentLabel[patient.consentStatus]}
+            </Badge>
           </div>
+
+          {patient.generalNotes ? (
+            <p className="mt-3 text-[12.5px] text-[var(--ink-3)] line-clamp-2">
+              {patient.generalNotes}
+            </p>
+          ) : null}
         </div>
       </div>
-
-      <dl className="mt-4 grid grid-cols-2 gap-x-4 gap-y-3 border-t border-[var(--border)] pt-4">
-        <Info label="Modalidade" value={patient.modality} />
-        <Info
-          label="Último contato"
-          value={
-            patient.lastContactAt ? formatDateTime(patient.lastContactAt) : "—"
-          }
-        />
-        <Info
-          label="Fila"
-          value={
-            patient.waitlistPosition
-              ? `Posição ${patient.waitlistPosition}`
-              : "Fora da fila"
-          }
-        />
-        <Info
-          label="Pendências"
-          value={`${patient.documentsPending ?? 0} documentos`}
-        />
-      </dl>
     </Link>
-  );
-}
-
-function Info({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="min-w-0">
-      <dt className="label">{label}</dt>
-      <dd className="mt-0.5 break-words text-[13px] font-medium text-[var(--ink-2)]">
-        {value}
-      </dd>
-    </div>
   );
 }
