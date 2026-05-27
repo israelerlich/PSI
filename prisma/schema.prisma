@@ -1,4 +1,3 @@
-// Placeholder — schema completo definido na Task 1.1
 generator client {
   provider = "prisma-client-js"
 }
@@ -6,4 +5,284 @@ generator client {
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
+}
+
+// ===== Domain =====
+
+model User {
+  id                       String   @id @default(cuid())
+  email                    String   @unique
+  passwordHash             String
+  name                     String
+  crp                      String
+  city                     String?
+  phone                    String?
+  defaultSessionPriceCents Int      @default(20000)
+  createdAt                DateTime @default(now())
+  updatedAt                DateTime @updatedAt
+
+  authSessions        AuthSession[]
+  passwordResetTokens PasswordResetToken[]
+
+  patients        Patient[]
+  therapySessions TherapySession[]
+  records         ClinicalRecord[]
+  notes           Note[]
+  consents        Consent[]
+  attachments     ClinicalAttachment[]
+  billingEntries  BillingEntry[]
+  timelineItems   TimelineItem[]
+}
+
+model Patient {
+  id            String        @id @default(cuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  name          String
+  email         String?
+  whatsapp      String?
+  birthDate     DateTime?
+  modality      Modality      @default(online)
+  archived      Boolean       @default(false)
+  generalNotes  String?
+  consentStatus ConsentStatus @default(pending)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+
+  sessions       TherapySession[]
+  records        ClinicalRecord[]
+  notes          Note[]
+  consents       Consent[]
+  attachments    ClinicalAttachment[]
+  billingEntries BillingEntry[]
+  timelineItems  TimelineItem[]
+
+  @@index([userId])
+  @@index([userId, archived])
+}
+
+model TherapySession {
+  id                  String              @id @default(cuid())
+  userId              String
+  patientId           String
+  patient             Patient             @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user                User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startsAt            DateTime
+  endsAt              DateTime
+  modality            Modality
+  status              SessionStatus       @default(AGENDADA)
+  paymentStatus       PaymentStatus       @default(PENDENTE)
+  location            String
+  serviceType         String              @default("Psicoterapia individual")
+  documentationStatus DocumentationStatus @default(not_started)
+  confirmationStatus  ConfirmationStatus  @default(pending)
+  attendanceStatus    AttendanceStatus    @default(expected)
+  amountCents         Int
+  origin              SessionOrigin       @default(dashboard)
+  notes               String?
+  createdAt           DateTime            @default(now())
+  updatedAt           DateTime            @updatedAt
+
+  clinicalRecord ClinicalRecord?
+  billingEntry   BillingEntry?
+
+  @@index([userId, startsAt])
+  @@index([patientId, startsAt])
+}
+
+model ClinicalRecord {
+  id             String          @id @default(cuid())
+  userId         String
+  patientId      String
+  sessionId      String?         @unique
+  patient        Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user           User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session        TherapySession? @relation(fields: [sessionId], references: [id])
+  template       RecordTemplate
+  fields         Json
+  contextSummary String?
+  retentionUntil DateTime
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  @@index([userId, patientId])
+}
+
+model Note {
+  id        String   @id @default(cuid())
+  userId    String
+  patientId String
+  sessionId String?
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  body      String
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId, patientId])
+}
+
+model Consent {
+  id        String            @id @default(cuid())
+  userId    String
+  patientId String
+  patient   Patient           @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user      User              @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  status    ConsentSignStatus @default(pending)
+  signedAt  DateTime?
+  fileUrl   String?
+  createdAt DateTime          @default(now())
+
+  @@index([userId, patientId])
+}
+
+model ClinicalAttachment {
+  id        String   @id @default(cuid())
+  userId    String
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  kind      String
+  title     String
+  fileUrl   String
+  createdAt DateTime @default(now())
+
+  @@index([userId, patientId])
+}
+
+model BillingEntry {
+  id            String          @id @default(cuid())
+  userId        String
+  patientId     String
+  sessionId     String?         @unique
+  patient       Patient         @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user          User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session       TherapySession? @relation(fields: [sessionId], references: [id])
+  amountCents   Int
+  serviceType   String
+  serviceDate   DateTime
+  paymentStatus PaymentStatus   @default(PENDENTE)
+  paidAt        DateTime?
+  invoiceStatus InvoiceStatus   @default(not_required)
+  receiptStatus ReceiptStatus   @default(not_ready)
+  receiptUrl    String?
+  createdAt     DateTime        @default(now())
+  updatedAt     DateTime        @updatedAt
+
+  @@index([userId, paymentStatus])
+}
+
+model TimelineItem {
+  id        String   @id @default(cuid())
+  userId    String
+  patientId String
+  patient   Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  detail    String
+  date      DateTime
+  kind      String
+  createdAt DateTime @default(now())
+
+  @@index([userId, patientId])
+}
+
+// ===== Auth.js (DB strategy) =====
+
+model AuthSession {
+  id           String   @id @default(cuid())
+  sessionToken String   @unique
+  userId       String
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+model PasswordResetToken {
+  id        String    @id @default(cuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  token     String    @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime  @default(now())
+
+  @@index([userId])
+}
+
+// ===== Enums =====
+
+enum Modality {
+  online
+  presencial
+}
+
+enum SessionStatus {
+  AGENDADA
+  REMANEJADA
+  CANCELADA
+  CONCLUIDA
+  NAO_COMPARECEU
+}
+
+enum PaymentStatus {
+  PENDENTE
+  PAGO
+}
+
+enum ConfirmationStatus {
+  pending
+  confirmed
+  rescheduled
+  manual_review
+}
+
+enum AttendanceStatus {
+  expected
+  present
+  missed
+  excused
+}
+
+enum DocumentationStatus {
+  not_started
+  draft
+  complete
+}
+
+enum SessionOrigin {
+  dashboard
+  imported
+}
+
+enum RecordTemplate {
+  DAP
+  BIRP
+}
+
+enum ConsentStatus {
+  pending
+  complete
+  expired
+}
+
+enum ConsentSignStatus {
+  pending
+  signed
+  expired
+}
+
+enum InvoiceStatus {
+  not_required
+  ready
+  issued
+  failed
+}
+
+enum ReceiptStatus {
+  not_ready
+  ready
+  sent
 }
