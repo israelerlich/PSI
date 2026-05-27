@@ -1,7 +1,6 @@
 "use client";
 
-import { Bell, Menu, Search } from "lucide-react";
-import { notifications } from "@/lib/mock-data";
+import { Menu, Search } from "lucide-react";
 
 export function Header({ onMenuClick }: { onMenuClick: () => void }) {
   const today = new Intl.DateTimeFormat("pt-BR", {
@@ -10,7 +9,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
     month: "long",
     year: "numeric",
     timeZone: "America/Sao_Paulo",
-  }).format(new Date("2026-05-16T12:00:00-03:00"));
+  }).format(new Date());
 
   return (
     <header className="sticky top-0 z-20 flex h-16 items-center border-b border-[var(--border)] bg-[var(--surface)]/95 backdrop-blur-md">
@@ -28,7 +27,7 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
           <p className="text-[11.5px] font-medium text-[var(--ink-4)]">
             {today.charAt(0).toUpperCase() + today.slice(1)}
           </p>
-          <h1 className="h-page truncate">Visão geral</h1>
+          <h1 className="h-page truncate">Clínica IA</h1>
         </div>
 
         <div className="flex items-center gap-2">
@@ -46,26 +45,6 @@ export function Header({ onMenuClick }: { onMenuClick: () => void }) {
               aria-label="Buscar"
             />
           </div>
-
-          <button
-            type="button"
-            aria-label="Notificações"
-            className="btn btn-secondary relative size-9 px-0"
-          >
-            <Bell aria-hidden="true" size={16} strokeWidth={1.8} />
-            {notifications.length > 0 ? (
-              <span
-                aria-hidden="true"
-                className="absolute -right-0.5 -top-0.5 flex size-4 items-center justify-center rounded-full bg-[var(--blue)] text-[9.5px] font-semibold text-white"
-              >
-                {notifications.length}
-              </span>
-            ) : null}
-          </button>
-
-          <button type="button" className="btn btn-primary hidden sm:inline-flex">
-            + Nova sessão
-          </button>
         </div>
       </div>
     </header>

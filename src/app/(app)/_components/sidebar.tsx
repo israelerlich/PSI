@@ -8,24 +8,31 @@ import {
   FileText,
   HeartPulse,
   ReceiptText,
+  Settings,
   ShieldCheck,
   UsersRound,
 } from "lucide-react";
-import { psychologistProfile } from "@/lib/mock-data";
 
 const navItems = [
-  { label: "Visão geral", href: "/", icon: Activity },
+  { label: "Hoje", href: "/", icon: Activity },
   { label: "Agenda", href: "/agenda", icon: CalendarDays },
   { label: "Pacientes", href: "/pacientes", icon: UsersRound },
   { label: "Prontuários", href: "/prontuarios", icon: FileText },
   { label: "Financeiro", href: "/financeiro", icon: ReceiptText },
   { label: "Compliance", href: "/compliance", icon: ShieldCheck },
+  { label: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
-export function Sidebar() {
+export function Sidebar({
+  userName,
+  userCrp,
+}: {
+  userName: string;
+  userCrp: string;
+}) {
   const pathname = usePathname();
 
-  const initials = psychologistProfile.name
+  const initials = userName
     .split(" ")
     .map((p) => p[0])
     .filter(Boolean)
@@ -49,7 +56,6 @@ export function Sidebar() {
         </div>
       </div>
 
-      {/* Nav */}
       <nav
         aria-label="Navegação principal"
         className="flex-1 overflow-y-auto px-3 py-4"
@@ -84,7 +90,6 @@ export function Sidebar() {
         </ul>
       </nav>
 
-      {/* User */}
       <div className="border-t border-[var(--border)] p-4">
         <div className="flex items-center gap-3">
           <div className="flex size-9 items-center justify-center rounded-full bg-[var(--blue-soft)] text-[var(--blue-text)] text-[12px] font-semibold">
@@ -92,10 +97,10 @@ export function Sidebar() {
           </div>
           <div className="min-w-0">
             <p className="truncate text-[13px] font-semibold text-[var(--ink)]">
-              {psychologistProfile.name}
+              {userName}
             </p>
             <p className="truncate text-[11.5px] text-[var(--ink-4)]">
-              {psychologistProfile.crp}
+              {userCrp}
             </p>
           </div>
         </div>

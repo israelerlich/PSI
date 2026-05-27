@@ -8,28 +8,33 @@ import {
   FileText,
   HeartPulse,
   ReceiptText,
+  Settings,
   ShieldCheck,
   UsersRound,
   X,
 } from "lucide-react";
-import { psychologistProfile } from "@/lib/mock-data";
 import clsx from "clsx";
 
 const navItems = [
-  { label: "Visão geral", href: "/", icon: Activity },
+  { label: "Hoje", href: "/", icon: Activity },
   { label: "Agenda", href: "/agenda", icon: CalendarDays },
   { label: "Pacientes", href: "/pacientes", icon: UsersRound },
   { label: "Prontuários", href: "/prontuarios", icon: FileText },
   { label: "Financeiro", href: "/financeiro", icon: ReceiptText },
   { label: "Compliance", href: "/compliance", icon: ShieldCheck },
+  { label: "Configurações", href: "/configuracoes", icon: Settings },
 ];
 
 export function MobileNav({
   open,
   onClose,
+  userName,
+  userCrp,
 }: {
   open: boolean;
   onClose: () => void;
+  userName: string;
+  userCrp: string;
 }) {
   const pathname = usePathname();
 
@@ -101,11 +106,9 @@ export function MobileNav({
 
         <div className="border-t border-[var(--border)] p-4">
           <p className="text-[13px] font-semibold text-[var(--ink)]">
-            {psychologistProfile.name}
+            {userName}
           </p>
-          <p className="mt-0.5 text-[11.5px] text-[var(--ink-4)]">
-            {psychologistProfile.crp}
-          </p>
+          <p className="mt-0.5 text-[11.5px] text-[var(--ink-4)]">{userCrp}</p>
         </div>
       </div>
     </>

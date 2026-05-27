@@ -1,28 +1,15 @@
-"use client";
+import { requireUser } from "@/lib/auth-helpers";
+import { AppShell } from "./_components/AppShell";
 
-import { useState } from "react";
-import { Sidebar } from "./_components/sidebar";
-import { Header } from "./_components/header";
-import { MobileNav } from "./_components/mobile-nav";
-
-export default function DashboardLayout({
+export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  const [mobileNavOpen, setMobileNavOpen] = useState(false);
-
+  const user = await requireUser();
   return (
-    <div className="flex min-h-screen bg-[var(--bg)]">
-      <Sidebar />
-      <MobileNav
-        open={mobileNavOpen}
-        onClose={() => setMobileNavOpen(false)}
-      />
-      <div className="flex min-w-0 flex-1 flex-col">
-        <Header onMenuClick={() => setMobileNavOpen(true)} />
-        <main className="flex-1">{children}</main>
-      </div>
-    </div>
+    <AppShell userName={user.name} userCrp={user.crp}>
+      {children}
+    </AppShell>
   );
 }
