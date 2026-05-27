@@ -1,17 +1,22 @@
-import { records, psychologistProfile } from "@/lib/mock-data";
+import { requireUser } from "@/lib/auth-helpers";
+import { prisma } from "@/lib/db";
 
 export async function GET(
   _request: Request,
   context: { params: Promise<{ id: string }> },
 ) {
+  const user = await requireUser();
   const { id } = await context.params;
-  const record = records.find((candidate) => candidate.id === id);
+  const record = await prisma.clinicalRecord.findFirst({
+    where: { id, userId: user.id },
+    include: { patient: true },
+  });
 
   if (!record) {
     return new Response("Prontuário não encontrado.", { status: 404 });
   }
 
-  const body = record.fields
+  const fields = (record.fields as Array<{ label: string; value: string }>)
     .map(
       (field) => `
         <section>
@@ -27,75 +32,44 @@ export async function GET(
       <html lang="pt-BR">
         <head>
           <meta charset="utf-8" />
-          <title>Prontuário ${escapeHtml(record.template)} - ${escapeHtml(record.patientName)}</title>
+          <title>Prontuário ${escapeHtml(record.template)} - ${escapeHtml(record.patient.name)}</title>
           <style>
-            body {
-              color: #1d211f;
-              font-family: Arial, Helvetica, sans-serif;
-              margin: 48px;
-            }
-            header {
-              border-bottom: 1px solid #d8d4c9;
-              margin-bottom: 32px;
-              padding-bottom: 20px;
-            }
-            h1 {
-              font-size: 24px;
-              margin: 0 0 8px;
-            }
-            h2 {
-              color: #0f4f4b;
-              font-size: 15px;
-              letter-spacing: 0.08em;
-              margin: 24px 0 8px;
-              text-transform: uppercase;
-            }
-            p {
-              line-height: 1.7;
-              margin: 0;
-            }
-            footer {
-              border-top: 1px solid #d8d4c9;
-              color: #625f58;
-              font-size: 12px;
-              margin-top: 40px;
-              padding-top: 16px;
-            }
-            @media print {
-              body {
-                margin: 28mm 22mm;
-              }
-            }
+            body { color: #0f1f3a; font-family: Arial, Helvetica, sans-serif; margin: 48px; }
+            header { border-bottom: 1px solid #e6ebf2; margin-bottom: 32px; padding-bottom: 20px; }
+            h1 { font-size: 24px; margin: 0 0 8px; }
+            h2 { color: #1b4ba6; font-size: 13px; letter-spacing: 0.08em; margin: 24px 0 8px; text-transform: uppercase; }
+            p { line-height: 1.7; margin: 0; }
+            footer { border-top: 1px solid #e6ebf2; color: #6b7a93; font-size: 12px; margin-top: 40px; padding-top: 16px; }
+            @media print { body { margin: 28mm 22mm; } }
           </style>
         </head>
         <body>
           <header>
             <h1>Prontuário ${escapeHtml(record.template)}</h1>
-            <p>${escapeHtml(psychologistProfile.name)} - ${escapeHtml(psychologistProfile.crp)}</p>
-            <p>Paciente: ${escapeHtml(record.patientName)}</p>
-            <p>Sessão: ${formatDate(record.sessionDate)}</p>
+            <p>${escapeHtml(user.name)} - ${escapeHtml(user.crp)}</p>
+            <p>Paciente: ${escapeHtml(record.patient.name)}</p>
+            <p>Criado em: ${formatDate(record.createdAt)}</p>
           </header>
-          ${body}
+          ${fields}
+          ${record.contextSummary ? `<section><h2>Contexto e continuidade</h2><p>${escapeHtml(record.contextSummary)}</p></section>` : ""}
           <footer>
-            Criado em ${formatDate(record.createdAt)}. Retenção mínima até ${formatDate(record.retentionUntil)}.
+            Retenção mínima até ${formatDate(record.retentionUntil)}.
           </footer>
           <script>window.print()</script>
         </body>
       </html>`,
     {
-      headers: {
-        "Content-Type": "text/html; charset=utf-8",
-      },
+      headers: { "Content-Type": "text/html; charset=utf-8" },
     },
   );
 }
 
-function formatDate(value: string) {
+function formatDate(value: Date) {
   return new Intl.DateTimeFormat("pt-BR", {
     dateStyle: "short",
     timeStyle: "short",
     timeZone: "America/Sao_Paulo",
-  }).format(new Date(value));
+  }).format(value);
 }
 
 function escapeHtml(value: string) {

@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { Header } from "./header";
 import { MobileNav } from "./mobile-nav";
+import { BottomTabs } from "@/components/features/BottomTabs";
 
 export function AppShell({
   userName,
@@ -27,8 +28,9 @@ export function AppShell({
       />
       <div className="flex min-w-0 flex-1 flex-col">
         <Header onMenuClick={() => setMobileNavOpen(true)} />
-        <main className="flex-1">{children}</main>
+        <main className="flex-1 pb-16 lg:pb-0">{children}</main>
       </div>
+      <BottomTabs />
     </div>
   );
 }

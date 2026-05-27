@@ -1,55 +1,94 @@
 # Clínica IA
 
-Projeto inicial baseado no documento **Sistema para Psicólogos - Regras de Negócio**.
+Painel de gestão para psicólogos autônomos: agenda, pacientes, prontuários DAP/BIRP, financeiro e compliance. **Single-tenant**, sem agentes IA, sem automação de WhatsApp — só guarda o número como contato.
 
-## Análise do documento
+## Stack
 
-A solução é uma plataforma SaaS single-user para psicólogos autônomos. O dashboard web concentra dados clínicos e administrativos, enquanto o WhatsApp atua apenas como SDR/recepcionista para captação, remarcação, cancelamento, lembretes e handoff.
+Next.js 16, React 19, TypeScript, Tailwind CSS 4, Geist Sans/Mono. PostgreSQL 17 via Prisma 6. Auth.js v5 com Credentials provider. Vitest + Testing Library.
 
-Regras centrais aplicadas nesta base:
+## Pré-requisitos
 
-- Prontuários DAP/BIRP são manuais, autorais e acessíveis somente pelo dashboard.
-- Dados clínicos não trafegam pelo WhatsApp.
-- Pacientes podem ser criados manualmente ou por lead qualificado pelo SDR.
-- Sessões possuem status clínico-operacional e pagamento apenas visual.
-- Prontuários e notas vinculadas a sessões seguem retenção mínima de 5 anos.
-- O agente alterna entre SDR e recepcionista conforme o telefone já exista na base.
+- Node.js 24 LTS
+- Docker Desktop (para PostgreSQL local) — alternativa: instalar Postgres direto ou apontar `DATABASE_URL` pra um banco gerenciado (Neon, Supabase, Railway…)
 
-## O que foi criado
-
-- App Next.js 16 com TypeScript, Tailwind CSS e App Router.
-- Dashboard inicial com agenda, pacientes, prontuários, notificações, configurações do agente e compliance.
-- Fluxos de confirmação, reagendamento, lembretes e presença com templates aprovados.
-- Módulo financeiro visual com cobranças, recibos, relatórios e emissão mockada de NFS-e.
-- Registros clínicos com contexto, anexos, consentimentos e linha do tempo por paciente.
-- Dados mockados tipados em `src/lib/mock-data.ts`.
-- Rotas API iniciais:
-  - `GET /api/agenda/slots`
-  - `POST /api/whatsapp/webhook`
-  - `GET /api/records/export/[id]`
-- Schema Supabase inicial em `supabase/schema.sql`, com RLS e travas de retenção.
-- `.env.example` com variáveis previstas para Supabase, OpenAI e BSP de WhatsApp.
-
-## Rodando localmente
+## Setup
 
 ```bash
-npm run dev
+cp .env.example .env
+# Edite .env:
+# - Gere AUTH_SECRET:  node -e "console.log(require('crypto').randomBytes(32).toString('base64'))"
+# - Defina INITIAL_USER_PASSWORD com uma senha forte
+# - (Opcional) RESEND_API_KEY para envio de email; sem ela os links de
+#   recuperação de senha são logados no console em dev.
+
+npm install
+npm run db:up           # sobe Postgres em :5432
+npm run db:migrate:deploy
+npm run db:seed         # cria sua conta inicial
+npm run dev             # http://localhost:3000
 ```
 
-Acesse `http://localhost:3000`.
+Faça login em `http://localhost:3000/login` com `INITIAL_USER_EMAIL` e a senha do seu `.env`.
 
-## Scripts
+## Comandos
 
 ```bash
-npm run dev
-npm run build
+npm run dev               # dev server
+npm run build && npm start  # produção
 npm run lint
+npm test                  # unit + integration
+npm run test:unit         # unit only (rápido, sem DB)
+npm run test:integration  # precisa de Postgres em :5433
+npm run test:coverage
+
+npm run db:up / db:down
+npm run db:test:up / db:test:down
+npm run db:migrate           # cria nova migration (dev)
+npm run db:migrate:deploy    # aplica migrations existentes
+npm run db:seed
+npm run db:studio            # GUI Prisma
 ```
 
-## Próximos passos
+### Testes de integração
 
-1. Criar autenticação Supabase no dashboard.
-2. Trocar dados mockados por queries reais com RLS.
-3. Implementar fila de background para WhatsApp, lembretes e fila de espera.
-4. Conectar OpenAI e BSP de WhatsApp com logs administrativos.
-5. Evoluir exportação HTML para PDF server-side.
+Precisam de um Postgres separado em `:5433` para isolar os dados:
+
+```bash
+npm run db:test:up
+$env:DATABASE_URL_TEST = "postgresql://psi:psi@localhost:5433/clinica_ia_test"
+$env:DATABASE_URL = $env:DATABASE_URL_TEST
+npx prisma migrate deploy
+npm run test:integration
+```
+
+## Arquitetura
+
+- `src/app/(auth)/` — rotas públicas (login, esqueci-senha, redefinir-senha)
+- `src/app/(app)/` — rotas protegidas pelo middleware
+- `src/lib/` — Prisma client, Auth.js, validators Zod, helpers
+- `src/server/actions/` — Server Actions (mutações)
+- `src/server/queries/` — funções de leitura tipadas
+- `src/middleware.ts` — auth gate
+- `prisma/schema.prisma` + `prisma/migrations/`
+- `tests/unit/` + `tests/integration/` + `tests/components/`
+
+## Funcionalidades
+
+- **Hoje (/)**: KPIs do dia, sessões agendadas, pendências
+- **Agenda**: lista por período, criar sessão (com detecção de conflito), confirmar, marcar presença, cancelar
+- **Atender (/agenda/[id])**: tela única para presença + prontuário DAP/BIRP + anotação + pagamento, salva tudo em uma transação
+- **Pacientes**: lista com busca, criar via drawer, ficha com seções (sessões, prontuários, anotações, financeiro), abrir WhatsApp Web
+- **Prontuários**: lista com busca, editor inline, retenção obrigatória de 5 anos
+- **Financeiro**: KPIs, lista de cobranças, marcar como paga
+- **Configurações**: perfil (nome, CRP, cidade, telefone, valor padrão de sessão), trocar senha, logout
+- **Compliance**: regras vigentes do CFP aplicadas no sistema
+- **Auth**: email + senha (bcrypt 12 rounds), sessão em DB (Auth.js), recuperação por email (Resend)
+
+## Documentação
+
+- Spec: `docs/superpowers/specs/2026-05-27-rework-clinica-ia-design.md`
+- Plano de implementação: `docs/superpowers/plans/2026-05-27-rework-clinica-ia.md`
+
+## Fora do escopo da v1
+
+E2E com Playwright, multi-tenant, lembretes automáticos por email, integração com calendário externo, emissão automática de NFS-e, pagamentos online, dark mode, i18n.
