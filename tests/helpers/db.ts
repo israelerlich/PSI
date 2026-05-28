@@ -8,8 +8,21 @@ if (!process.env.DATABASE_URL_TEST) {
   );
 }
 
+// SAFETY: refuse to run integration tests against the dev database.
+// resetDb() TRUNCATES every table — pointing at the dev DB wipes real data.
+const TEST_URL = process.env.DATABASE_URL_TEST;
+if (/\/clinica_ia(\?|$)/.test(TEST_URL)) {
+  throw new Error(
+    `Refusing to run integration tests against the dev database (${TEST_URL}). ` +
+      `Use a separate database. Quickest fix: create it once on the embedded ` +
+      `Postgres with:\n` +
+      `  psql "postgresql://psi:psi@localhost:5432/postgres" -c 'CREATE DATABASE clinica_ia_test;'\n` +
+      `Then set DATABASE_URL_TEST=postgresql://psi:psi@localhost:5432/clinica_ia_test and rerun migrations.`,
+  );
+}
+
 export const testPrisma = new PrismaClient({
-  datasources: { db: { url: process.env.DATABASE_URL_TEST } },
+  datasources: { db: { url: TEST_URL } },
 });
 
 /**
