@@ -7,7 +7,8 @@ import { loginSchema } from "@/lib/validators/auth";
 
 export const { handlers, auth, signIn, signOut } = NextAuth({
   adapter: PrismaAdapter(prisma),
-  session: { strategy: "database", maxAge: 30 * 24 * 60 * 60 },
+  // Credentials provider requires JWT strategy (Auth.js v5 limitation)
+  session: { strategy: "jwt", maxAge: 30 * 24 * 60 * 60 },
   pages: { signIn: "/login" },
   providers: [
     Credentials({
@@ -29,8 +30,12 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     }),
   ],
   callbacks: {
-    session: ({ session, user }) => {
-      if (session.user) session.user.id = user.id;
+    jwt: ({ token, user }) => {
+      if (user) token.id = user.id;
+      return token;
+    },
+    session: ({ session, token }) => {
+      if (session.user && token.id) session.user.id = token.id as string;
       return session;
     },
   },

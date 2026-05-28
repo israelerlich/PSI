@@ -13,7 +13,8 @@ const ITEMS = [
   "Prontuários DAP e BIRP são autorais e sem redação por IA.",
   "Arquivamento preserva registros por 5 anos (retenção obrigatória).",
   "Cobranças e recibos ficam vinculados ao atendimento.",
-  "Conta única por instância (single-tenant); senhas com bcrypt.",
+  "Cada psicólogo só vê os próprios dados (isolamento por conta no banco).",
+  "Senhas guardadas com bcrypt (12 rounds); recuperação por link expirável.",
 ];
 
 export default async function CompliancePage() {
@@ -52,7 +53,9 @@ export default async function CompliancePage() {
           <p className="mt-1.5 text-[13px] leading-relaxed text-[var(--blue-text)]">
             Sem agente IA, sem automações de mensageria. O sistema só guarda
             dados que você inseriu manualmente. Prontuários são autorais e
-            mantidos por no mínimo cinco anos.
+            mantidos por no mínimo cinco anos. Cada psicólogo tem seu próprio
+            espaço — os dados de outros profissionais nunca aparecem na sua
+            tela.
           </p>
         </div>
       </Panel>

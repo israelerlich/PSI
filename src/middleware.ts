@@ -1,7 +1,12 @@
 import { auth } from "@/lib/auth";
 import { NextResponse } from "next/server";
 
-const PUBLIC_PATHS = ["/login", "/esqueci-senha", "/redefinir-senha"];
+const PUBLIC_PATHS = [
+  "/login",
+  "/cadastro",
+  "/esqueci-senha",
+  "/redefinir-senha",
+];
 const PUBLIC_PREFIXES = [
   "/api/auth",
   "/_next",
