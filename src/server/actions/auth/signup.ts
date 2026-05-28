@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { hashPassword } from "@/lib/password";
 import { signupSchema, type SignupInput } from "@/lib/validators/auth";
@@ -60,4 +61,31 @@ export async function signupAction(
   }
 
   return actionOk({ email: created.data.email });
+}
+
+/**
+ * FormData variant for use with <form action={signupFromForm}>.
+ * Works without client JavaScript.
+ */
+export type SignupFormState = {
+  error: string | null;
+  fieldErrors: Record<string, string[]> | null;
+};
+
+export async function signupFromForm(
+  _prev: SignupFormState,
+  formData: FormData,
+): Promise<SignupFormState> {
+  const input: SignupInput = {
+    name: String(formData.get("name") ?? ""),
+    crp: String(formData.get("crp") ?? ""),
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+    confirmPassword: String(formData.get("confirmPassword") ?? ""),
+  };
+  const r = await signupAction(input);
+  if (!r.ok) {
+    return { error: r.error, fieldErrors: r.fieldErrors ?? null };
+  }
+  redirect("/");
 }

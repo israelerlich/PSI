@@ -1,5 +1,6 @@
 "use server";
 
+import { redirect } from "next/navigation";
 import { prisma } from "@/lib/db";
 import { verifyPassword } from "@/lib/password";
 import { loginSchema, type LoginInput } from "@/lib/validators/auth";
@@ -29,9 +30,9 @@ export async function verifyLogin(
 }
 
 /**
- * Server Action consumed by the /login form. Verifies credentials then
- * delegates to Auth.js signIn() to set the cookie. In test contexts
- * (no Next request) the cookie step is a no-op.
+ * Server Action consumed by the /login form (JSON input variant).
+ * Verifies credentials then delegates to Auth.js signIn() to set the cookie.
+ * In test contexts (no Next request) the cookie step is a no-op.
  */
 export async function loginAction(
   input: LoginInput,
@@ -50,4 +51,31 @@ export async function loginAction(
     // we already verified credentials. Production calls always have context.
   }
   return actionOk({ email: verified.data.email });
+}
+
+/**
+ * FormData variant for use with <form action={loginFromForm}>.
+ * Works without client JavaScript (native form submission). Returns
+ * a state object consumed by useActionState in the client form.
+ */
+export type LoginFormState = {
+  error: string | null;
+  fieldErrors: Record<string, string[]> | null;
+};
+
+export async function loginFromForm(
+  _prev: LoginFormState,
+  formData: FormData,
+): Promise<LoginFormState> {
+  const next = String(formData.get("next") ?? "/") || "/";
+  const input = {
+    email: String(formData.get("email") ?? ""),
+    password: String(formData.get("password") ?? ""),
+  };
+  const r = await loginAction(input);
+  if (!r.ok) {
+    return { error: r.error, fieldErrors: r.fieldErrors ?? null };
+  }
+  // Redirect happens by throwing — must be outside try/catch
+  redirect(next.startsWith("/") ? next : "/");
 }

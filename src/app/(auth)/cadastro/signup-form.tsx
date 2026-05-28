@@ -1,42 +1,21 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
 import Link from "next/link";
-import { signupAction } from "@/server/actions/auth/signup";
+import {
+  signupFromForm,
+  type SignupFormState,
+} from "@/server/actions/auth/signup";
+
+const initialState: SignupFormState = { error: null, fieldErrors: null };
 
 export function SignupForm() {
-  const router = useRouter();
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [pending, start] = useTransition();
-
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    const fd = new FormData(e.currentTarget);
-    const input = {
-      name: String(fd.get("name") ?? "").trim(),
-      crp: String(fd.get("crp") ?? "").trim(),
-      email: String(fd.get("email") ?? "").trim(),
-      password: String(fd.get("password") ?? ""),
-      confirmPassword: String(fd.get("confirmPassword") ?? ""),
-    };
-    start(async () => {
-      const r = await signupAction(input);
-      if (!r.ok) {
-        setError(r.error);
-        setFieldErrors(r.fieldErrors ?? {});
-        return;
-      }
-      router.replace("/");
-      router.refresh();
-    });
-  }
+  const [state, formAction] = useActionState(signupFromForm, initialState);
+  const fieldErrors = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} className="card p-6 space-y-4">
+    <form action={formAction} className="card p-6 space-y-4">
       <div>
         <label htmlFor="name" className="label-strong block mb-1">
           Nome completo
@@ -146,22 +125,16 @@ export function SignupForm() {
         ) : null}
       </div>
 
-      {error ? (
+      {state.error ? (
         <div
           role="alert"
           className="rounded-md border border-[#f3bcbc] bg-[var(--danger-soft)] p-3 text-[13px] text-[var(--danger-text)]"
         >
-          {error}
+          {state.error}
         </div>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn btn-primary w-full"
-      >
-        {pending ? "Criando conta..." : "Criar conta"}
-      </button>
+      <SubmitButton />
 
       <div className="pt-2 text-center text-[12.5px]">
         <Link href="/login" className="text-[var(--blue)] hover:underline">
@@ -169,5 +142,14 @@ export function SignupForm() {
         </Link>
       </div>
     </form>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className="btn btn-primary w-full">
+      {pending ? "Criando conta..." : "Criar conta"}
+    </button>
   );
 }

@@ -1,41 +1,27 @@
 "use client";
 
-import { useTransition, useState } from "react";
-import { useRouter, useSearchParams } from "next/navigation";
+import { useActionState } from "react";
+import { useFormStatus } from "react-dom";
+import { useSearchParams } from "next/navigation";
 import Link from "next/link";
-import { loginAction } from "@/server/actions/auth/login";
+import {
+  loginFromForm,
+  type LoginFormState,
+} from "@/server/actions/auth/login";
+
+const initialState: LoginFormState = { error: null, fieldErrors: null };
 
 export function LoginForm() {
-  const router = useRouter();
   const sp = useSearchParams();
+  const next = sp.get("next") ?? "/";
   const resetOk = sp.get("reset") === "ok";
-  const [error, setError] = useState<string | null>(null);
-  const [fieldErrors, setFieldErrors] = useState<Record<string, string[]>>({});
-  const [pending, startTransition] = useTransition();
-
-  function onSubmit(e: React.FormEvent<HTMLFormElement>) {
-    e.preventDefault();
-    setError(null);
-    setFieldErrors({});
-    const fd = new FormData(e.currentTarget);
-    const input = {
-      email: String(fd.get("email") ?? ""),
-      password: String(fd.get("password") ?? ""),
-    };
-    startTransition(async () => {
-      const r = await loginAction(input);
-      if (!r.ok) {
-        setError(r.error);
-        setFieldErrors(r.fieldErrors ?? {});
-        return;
-      }
-      router.replace(sp.get("next") ?? "/");
-      router.refresh();
-    });
-  }
+  const [state, formAction] = useActionState(loginFromForm, initialState);
+  const fieldErrors = state.fieldErrors ?? {};
 
   return (
-    <form onSubmit={onSubmit} className="card p-6 space-y-4">
+    <form action={formAction} className="card p-6 space-y-4">
+      <input type="hidden" name="next" value={next} />
+
       {resetOk ? (
         <div
           role="status"
@@ -81,28 +67,25 @@ export function LoginForm() {
           aria-describedby={fieldErrors.password ? "password-err" : undefined}
         />
         {fieldErrors.password ? (
-          <p id="password-err" className="mt-1 text-[12px] text-[var(--danger)]">
+          <p
+            id="password-err"
+            className="mt-1 text-[12px] text-[var(--danger)]"
+          >
             {fieldErrors.password[0]}
           </p>
         ) : null}
       </div>
 
-      {error ? (
+      {state.error ? (
         <div
           role="alert"
           className="rounded-md border border-[#f3bcbc] bg-[var(--danger-soft)] p-3 text-[13px] text-[var(--danger-text)]"
         >
-          {error}
+          {state.error}
         </div>
       ) : null}
 
-      <button
-        type="submit"
-        disabled={pending}
-        className="btn btn-primary w-full"
-      >
-        {pending ? "Entrando..." : "Entrar"}
-      </button>
+      <SubmitButton />
 
       <div className="flex justify-between items-center pt-2 text-[12.5px]">
         <Link
@@ -111,13 +94,19 @@ export function LoginForm() {
         >
           Esqueci minha senha
         </Link>
-        <Link
-          href="/cadastro"
-          className="text-[var(--blue)] hover:underline"
-        >
+        <Link href="/cadastro" className="text-[var(--blue)] hover:underline">
           Criar conta
         </Link>
       </div>
     </form>
+  );
+}
+
+function SubmitButton() {
+  const { pending } = useFormStatus();
+  return (
+    <button type="submit" disabled={pending} className="btn btn-primary w-full">
+      {pending ? "Entrando..." : "Entrar"}
+    </button>
   );
 }
